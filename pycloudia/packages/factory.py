@@ -1,0 +1,2 @@
+class PackageFactory(object):
+    pass
