@@ -1,23 +1,31 @@
+from pycloudia.channels.channel import PullChannel
 from pycloudia.channels.registry import ChannelsRegistry
 from pycloudia.services.registry import ServicesRegistry
 from pycloudia.defer import inline_callbacks
+from pycloudia.utils import import_class
 
 
 class BaseNode(object):
     reactor = None
+    shell = None
 
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
+    def bind_shell(self):
+        raise NotImplementedError()
 
     def run(self):
         raise NotImplementedError()
 
+    def _create_channel_factory(self, path):
+        channel_factory_cls = import_class(path)
+        return channel_factory_cls()
+
 
 class WorkerNode(BaseNode):
     config = None
-    channels = {}
-    services = {}
+
+    def __init__(self):
+        self.channels = {}
+        self.services = {}
 
     @inline_callbacks
     def run(self):
@@ -37,3 +45,28 @@ class WorkerNode(BaseNode):
         registry = ServicesRegistry(self.config, channels)
         registry.configure(services_config.get_bean_list())
         return registry
+
+
+class ConfigNode(BaseNode):
+    def __init__(self, cluster_config, services_config, machine_name, port):
+        self.cluster_config = cluster_config
+        self.services_config = services_config
+        self.machine_name = machine_name
+        self.port = port
+        self.channel = None
+        self.service = None
+
+    @inline_callbacks
+    def run(self):
+        self.channel = self._create_channel()
+        yield self.channel.run()
+        self.service = self._create_config_service(self.channel)
+        yield self.service.run()
+
+    def _create_channel(self):
+        host = self.cluster_config.get_host_by_machine_name(self.machine_name)
+        channel_factory = self._create_channel_factory(self.services_config.get_channels_factory_path())
+        return channel_factory.create_pull_channel(host, self.port)
+
+    def _create_config_service(self, channel):
+        return None
