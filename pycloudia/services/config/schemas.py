@@ -1,4 +1,4 @@
-from pyschema import Schema, List, Builder, Str, Dict, Node
+from pyschema import Schema, List, Builder, Str, Dict, Node, Int
 
 
 class PullSchema(Schema):
@@ -29,3 +29,28 @@ class ChannelSchema(Schema):
 class InitResponseSchema(Schema):
     services = List(Builder(ServiceSchema))
     channels = List(Builder(ChannelSchema))
+
+
+class MachineSchema(Schema):
+    name = Str()
+    host = Str()
+
+
+class ClusterSchema(Schema):
+    name = Str()
+    machines = List(Builder(MachineSchema))
+
+
+class ConfigSchema(Schema):
+    machine = Str()
+    port = Int()
+
+
+class ClustersConfigSchema(Schema):
+    clusters = List(Builder(ClusterSchema))
+    configs = List(Builder(ConfigSchema))
+
+
+class ChannelsConfigSchema(Schema):
+    defaults = Dict(Str())
+    channels = Dict(Dict(Str()))

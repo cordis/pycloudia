@@ -1,8 +1,7 @@
-from pycloudia.channels.channel import PullChannel
 from pycloudia.channels.registry import ChannelsRegistry
 from pycloudia.services.registry import ServicesRegistry
 from pycloudia.defer import inline_callbacks
-from pycloudia.utils import import_class
+from pycloudia.uitls.code import import_class
 
 
 class BaseNode(object):

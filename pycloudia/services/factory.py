@@ -1,5 +1,5 @@
 from pycloudia.services.runner import ServiceRunner
-from pycloudia.utils import import_class
+from pycloudia.uitls.code import import_class
 
 
 class ServiceFactory(object):
