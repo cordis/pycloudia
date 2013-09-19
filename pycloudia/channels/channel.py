@@ -1,7 +1,7 @@
 from pycloudia.defer import deferrable
 
 
-class BaseChannel(object):
+class Channel(object):
     socket = None
     package_factory = None
     package_decoder = None
@@ -18,12 +18,6 @@ class BaseChannel(object):
             return callback(package)
         self.socket.run(on_message_received)
 
-
-class PullChannel(BaseChannel):
-    pass
-
-
-class PushChannel(BaseChannel):
     @deferrable
     def request(self, package):
         sender = self.router.choose(self.socket.get_sender_names(), package)

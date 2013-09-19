@@ -3,13 +3,13 @@ from pycloudia.packages.factory import PackageFactory
 from pycloudia.packages.decoder import PackageDecoder
 from pycloudia.packages.encoder import PackageEncoder
 from pycloudia.channels.responder import Responder
-from pycloudia.channels.channel import PullChannel, PushChannel
+from pycloudia.channels.channel import Channel
 
 
 class ChannelFactory(object):
     responder_factory = Responder
-    push_channel_factory = PushChannel
-    pull_channel_factory = PullChannel
+    push_channel_factory = Channel
+    pull_channel_factory = Channel
     package_factory = PackageFactory()
     package_decoder = PackageDecoder()
     package_encoder = PackageEncoder()
