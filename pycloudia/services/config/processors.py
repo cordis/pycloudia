@@ -4,37 +4,33 @@ from pycloudia.services.config.responses import PingResponse, InitResponse
 
 
 class BaseProcessor(object):
-    def __init__(self, state):
-        self.state = state
-
     @deferrable
-    def process(self, request):
+    def process(self, state, request):
         raise NotImplementedError()
 
 
 class PingProcessor(BaseProcessor):
     @deferrable
-    def process(self, request):
-        worker_id = self.state.create_worker_id(request.worker.host, request.worker.port)
-        self.state.update_worker_status(worker_id, request.timestamp)
+    def process(self, state, request):
+        worker_id = state.create_worker_id(request.worker.host, request.worker.port)
+        state.update_worker_status(worker_id, request.timestamp)
         return PingResponse()
 
 
 class InitProcessor(BaseProcessor):
     @deferrable
-    def process(self, request):
-        worker_id = self.state.create_worker_id(request.worker.host, request.worker.port)
-        self.state.update_worker_state(worker_id, request.timestamp)
-        config = self.state.get_worker_config(worker_id)
+    def process(self, state, request):
+        worker_id = state.create_worker_id(request.worker.host, request.worker.port)
+        state.update_worker_state(worker_id, request.timestamp)
+        config = state.get_worker_config(worker_id)
         return InitResponse(config)
 
 
 class ProcessorsFactory(object):
-    def __init__(self, state):
-        self.resource_to_processor_map = {
-            PingRequest: PingProcessor(state),
-            InitRequest: InitProcessor(state),
-        }
+    resource_to_processor_map = {
+        PingRequest: PingProcessor(),
+        InitRequest: InitProcessor(),
+    }
 
     def __call__(self, request):
         return self.resource_to_processor_map[type(request)]

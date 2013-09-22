@@ -1,6 +1,6 @@
 from txzmq import ZmqEndpoint, ZmqEndpointType
 
-from pycloudia.channels.twisted_zmq.connections import *
+from pycloudia.channels.txzmq_impl.connections import *
 
 
 __all__ = [

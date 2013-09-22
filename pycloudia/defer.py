@@ -7,7 +7,7 @@ __all__ = [
     'maybe_deferred',
     'return_value',
     'deferrable',
-    'DeferredList'
+    'DeferredListFactory'
 ]
 
 inline_callbacks = inlineCallbacks
@@ -20,3 +20,14 @@ def deferrable(function):
     def wrapper(*args, **kwargs):
         return maybe_deferred(function, *args, **kwargs)
     return wrapper
+
+
+class DeferredListFactory(DeferredList):
+    @staticmethod
+    def create(deferred_list):
+        def restore_failure(failure):
+            return failure.value.subFailure
+        instance = DeferredList(deferred_list, fireOnOneErrback=True, consumeErrors=True)
+        instance.addErrback(restore_failure)
+        return instance
+

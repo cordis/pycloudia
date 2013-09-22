@@ -2,19 +2,18 @@ from pycloudia.defer import deferrable
 
 
 class Channel(object):
-    socket = None
-    package_factory = None
     package_decoder = None
     package_encoder = None
 
-    def __init__(self, name, router=None):
+    def __init__(self, name, socket, router=None):
         self.name = name
+        self.socket = socket
         self.router = router
 
     def run(self, callback):
         @deferrable
         def on_message_received(message):
-            package = self.package_decoder.decode(message, self.package_factory)
+            package = self.package_decoder.decode(message)
             return callback(package)
         self.socket.run(on_message_received)
 
