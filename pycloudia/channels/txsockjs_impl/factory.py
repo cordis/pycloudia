@@ -1,24 +1,16 @@
-from txzmq import ZmqFactory
-
 from pycloudia.channels.consts import METHOD
-from pycloudia.channels.txzmq_impl.sockets import *
 
 
 class SocketFactory(object):
+    reactor = None
+
     method_to_cls_map = {
-        METHOD.REQUEST: DealerSocket,
-        METHOD.RESPOND: RouterSocket,
-        METHOD.PUSH: PushSocket,
         METHOD.SINK: SinkSocket,
         METHOD.BLOW: BlowSocket,
-        METHOD.PULL: PullSocket,
-        METHOD.PUB: PubSocket,
-        METHOD.SUB: SubSocket,
     }
 
     def __init__(self):
-        self.zmq_factory = ZmqFactory()
-        self.zmq_factory.registerForShutdown()
+        pass
 
     def __call__(self, name, method, host, port, *args, **kwargs):
         socket_cls = self.method_to_cls_map[method]

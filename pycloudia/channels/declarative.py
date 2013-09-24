@@ -1,112 +1,118 @@
 import collections
-import logging
 import functools
 
-from pycloudia.defer import DeferredListFactory
+from pycloudia.defer import DeferredListFactory, maybe_deferred
 from pycloudia.channels.consts import METHOD
 
 
-__all__ = ['request', 'respond', 'push', 'sink', 'blow', 'pull', 'publish', 'subscribe']
+__all__ = ['dealer', 'router', 'push', 'sink', 'blow', 'pull', 'publish', 'subscribe']
 
 
 ChannelOptions = collections.namedtuple('BaseChannelOptions', '''
 name
-topic
-dispatcher
 impl
 internal
 external
 ''')
 
 
-class ChannelDecorator(object):
-    logger = logging.getLogger('pycloudia.channels')
+class ChannelDeclaration(object):
+    bridge = None
+    listeners = []
 
-    @classmethod
-    def create_decorator(cls, name, topic=None, dispatcher=None, impl=None, internal=True, external=False):
+    def __init__(self, name, impl=None, internal=True, external=False):
         assert internal or external
-        channel_options = ChannelOptions(name, topic, dispatcher, impl, internal, external)
+        self.options = ChannelOptions(name, impl, internal, external)
 
-        def decorator(method):
-            if isinstance(method, cls):
-                instance = method
-            else:
-                wrapper = functools.wraps(method)
-                instance = wrapper(cls(method))
+    def listen(self, func):
+        self.listeners.append(func)
 
-            instance.channels.append(channel_options)
-            return instance
+    def _decorate_or_proxy(self, method_name, func_or_package, *args, **kwargs):
+        method = getattr(self.bridge, method_name)
 
-        return decorator
+        if callable(func_or_package):
+            wrapper = functools.wraps(func_or_package)
+            return wrapper(method)
+        else:
+            return method(func_or_package, *args, **kwargs)
 
-    def __init__(self, method):
-        self.method = method
-        self.channels = []
-        self.handlers = []
+    def set_bridge(self, bridge):
+        self.bridge = bridge
+        self.bridge.set_callback(self._callback)
 
-    def add_handler(self, handler):
+    def _callback(self, package, *args, **kwargs):
+        deferred_list = []
+        for listener in self.listeners:
+            deferred_list.append(maybe_deferred(listener, package, *args, **kwargs))
+        return DeferredListFactory.create_all_or_nothing(deferred_list)
+
+
+class NoListenBehavior(object):
+    def listen(self, *args, **kwargs):
         raise NotImplementedError()
 
 
-class ActiveChannelDecorator(ChannelDecorator):
-    handlers = []
-
-    def add_handler(self, handler):
-        self.handlers.append(handler)
-
-    def __call__(self, package):
-        package = self.method(package)
-        deferred_list = []
-        for handler in self.handlers:
-            deferred_list.append(handler.request(package))
-        return DeferredListFactory.create(deferred_list)
-
-
-class PassiveChannelDecorator(ChannelDecorator):
-    def add_handler(self, handler):
-        handler.set_callback(self.method)
-
-    def __call__(self, package):
-        raise AttributeError('Unable to send to passive channel')
-
-
-class RequestDecorator(ActiveChannelDecorator):
+class DealerDeclaration(ChannelDeclaration):
     method = METHOD.REQUEST
 
+    def route(self, package_or_func, *client_id_list):
+        return self._decorate_or_proxy('route', package_or_func, *client_id_list)
 
-class RespondDecorator(PassiveChannelDecorator):
+    def broadcast(self, package_or_func):
+        return self._decorate_or_proxy('broadcast', package_or_func)
+
+
+class RouterDeclaration(ChannelDeclaration):
     method = METHOD.RESPOND
 
+    def route(self, package_or_func, *client_id_list):
+        return self._decorate_or_proxy('route', package_or_func, *client_id_list)
 
-class PushDecorator(ActiveChannelDecorator):
+    def broadcast(self, package_or_func):
+        return self._decorate_or_proxy('broadcast', package_or_func)
+
+
+class PushDeclaration(ChannelDeclaration, NoListenBehavior):
     method = METHOD.PUSH
 
+    def route(self, package_or_func, *client_id_list):
+        return self._decorate_or_proxy('route', package_or_func, *client_id_list)
 
-class SinkDecorator(PassiveChannelDecorator):
+    def broadcast(self, package_or_func):
+        return self._decorate_or_proxy('broadcast', package_or_func)
+
+
+class SinkDeclaration(ChannelDeclaration):
     method = METHOD.SINK
 
 
-class BlowDecorator(ActiveChannelDecorator):
+class BlowDeclaration(ChannelDeclaration, NoListenBehavior):
     method = METHOD.BLOW
 
+    def produce(self, package_or_func):
+        return self._decorate_or_proxy('produce', package_or_func)
 
-class PullDecorator(PassiveChannelDecorator):
+
+class PullDeclaration(ChannelDeclaration):
     method = METHOD.PULL
 
 
-class PubDecorator(ActiveChannelDecorator):
+class PubDeclaration(ChannelDeclaration, NoListenBehavior):
     method = METHOD.PUB
 
+    def produce(self, package_or_func):
+        return self._decorate_or_proxy('produce', package_or_func)
 
-class SubDecorator(PassiveChannelDecorator):
+
+class SubDeclaration(ChannelDeclaration):
     method = METHOD.SUB
 
 
-request = RequestDecorator.create_decorator
-respond = RespondDecorator.create_decorator
-push = PushDecorator.create_decorator
-sink = SinkDecorator.create_decorator
-blow = BlowDecorator.create_decorator
-pull = PullDecorator.create_decorator
-publish = PubDecorator.create_decorator
-subscribe = SubDecorator.create_decorator
+dealer = DealerDeclaration
+router = RouterDeclaration
+push = PushDeclaration
+sink = SinkDeclaration
+blow = BlowDeclaration
+pull = PullDeclaration
+publish = PubDeclaration
+subscribe = SubDeclaration

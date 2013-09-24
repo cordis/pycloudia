@@ -27,7 +27,7 @@ class ChannelsRegistry(object):
         deferred_list = []
         for channel in self.channels_map.values():
             deferred_list.append(self._create_deferred_channel_run(channel))
-        return DeferredListFactory.create(deferred_list)
+        return DeferredListFactory.create_all_or_nothing(deferred_list)
 
     @inline_callbacks
     def _create_deferred_channel_run(self, channel):

@@ -2,6 +2,7 @@ class IMPL(object):
     ZMQ = 'zmq'
     HTTP = 'http'
     HTTPS = 'https'
+    SOCKJS = 'sockjs'
 
 
 class METHOD(object):

@@ -11,7 +11,7 @@ from pycloudia import channels
 
 
 class Config(PythonConfig):
-    options_factory = NodeOptions = namedtuple('ConfigOptions', '''
+    options_factory = namedtuple('ConfigOptions', '''
 internal_host
 external_host
 config_address_list

@@ -9,6 +9,14 @@ class PACKAGE(object):
     DELIMITER = '\r\n\r\n'
 
     class HEADER(object):
+        class FORMAT(object):
+            DELIMITER = ':'
+
         RESOURCE = 'X-Resource'
         WORKER_ID = 'X-Worker-Id'
         TIMESTAMP = 'X-Timestamp'
+
+
+class DISPATCHER(object):
+    ANY = 'any'
+    ALL = 'all'

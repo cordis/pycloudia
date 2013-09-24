@@ -1,0 +1,2 @@
+class HeaderNotFoundError(RuntimeError):
+    pass

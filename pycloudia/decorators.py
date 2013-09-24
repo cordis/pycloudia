@@ -2,7 +2,7 @@ from functools import wraps
 from types import GeneratorType
 
 
-def collect_list(function):
+def generate_list(function):
     @wraps(function)
     def decorator(*args, **kwargs):
         ret = function(*args, **kwargs)

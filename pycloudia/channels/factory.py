@@ -11,7 +11,7 @@ class ChannelFactory(object):
     def __init__(self, options):
         self.options = options
 
-    def __call__(self, socket_factory, socket_method, channel_name, port, host):
+    def __call__(self, socket_factory, socket_method, channel_name, host, port):
         socket = socket_factory(socket_method, host, port)
         return self.channel_cls(channel_name, socket)
 
