@@ -10,19 +10,22 @@ class InvalidMessageError(RuntimeError):
 class PackageDecoder(object):
     logger = getLogger('pycloudia.packages')
 
-    def decode(self, message, package_factory):
-        raw_headers, raw_body = self._extract_headers_and_body(message)
-        headers = self._parse_headers(raw_headers)
-        return package_factory(raw_body, headers)
+    def __init__(self, package_factory):
+        self.package_factory = package_factory
 
-    def _extract_headers_and_body(self, message):
+    def decode(self, message):
+        raw_headers, raw_content = self._extract_headers_and_content(message)
+        headers = self._parse_headers(raw_headers)
+        return self.package_factory(raw_content, headers)
+
+    def _extract_headers_and_content(self, message):
         try:
-            headers, body = message.split(PACKAGE.DELIMITER, 1)
+            headers, content = message.split(PACKAGE.DELIMITER, 1)
         except ValueError:
             self.logger.exception('Cant decode message: %s', message)
             return '', ''
         else:
-            return headers, body
+            return headers, content
 
     def _parse_headers(self, string):
         ret = {}

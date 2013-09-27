@@ -1,26 +1,19 @@
-from pycloudia.utils import import_class
-from pycloudia.channels.channel import PullChannel, PushChannel
-from pycloudia.packages.factory import PackageFactory
+from pycloudia.channels.channel import Channel
 from pycloudia.packages.decoder import PackageDecoder
 from pycloudia.packages.encoder import PackageEncoder
 
 
-class ChannelsFactory(object):
-    package_factory = PackageFactory()
-    package_decoder = PackageDecoder()
-    package_encoder = PackageEncoder()
+class ChannelFactory(object):
+    channel_cls = Channel
+    package_decoder = PackageDecoder
+    package_encoder = PackageEncoder
 
-    def __init__(self, default_router_path=None, default_socket_factory_path=None):
-        self.default_socket_factory_path = default_socket_factory_path
-        self.default_router_path = default_router_path
+    def __init__(self, options):
+        self.options = options
 
-    def create_pull_channel(self, name, router_path=None, socket_factory_path=None, **kwargs):
-        channel = PullChannel(name, self._get_router(router_path))
-        return self._inject_implementation(channel, socket_factory_path, **kwargs)
-
-    def create_push_channel(self, name, router_path=None, socket_factory_path=None, **kwargs):
-        channel = PushChannel(name, self._get_router(router_path))
-        return self._inject_implementation(channel, socket_factory_path, **kwargs)
+    def __call__(self, socket_factory, socket_method, channel_name, host, port):
+        socket = socket_factory(socket_method, host, port)
+        return self.channel_cls(channel_name, socket)
 
     def _get_router(self, router_path):
         if router_path is None:

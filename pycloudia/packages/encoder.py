@@ -11,11 +11,11 @@ class PackageEncoder(object):
     logger = getLogger('pycloudia.packages')
 
     def encode(self, package):
-        body = package.get_body()
-        if not isinstance(body, str):
-            raise InvalidBodyError('Package body must be string')
+        content = package.get_content()
+        if not isinstance(content, str):
+            raise InvalidBodyError('Package content must be string')
 
-        data = '%s%s%s' % (self._encode_headers(package), PACKAGE.DELIMITER, body)
+        data = '%s%s%s' % (self._encode_headers(package), PACKAGE.DELIMITER, content)
         try:
             return str(data)
         except UnicodeEncodeError:

@@ -1,7 +1,7 @@
 from time import time
 from logging import getLogger
 
-from pycloudia.defer import inline_callbacks, maybe_deferred, DeferredList
+from pycloudia.defer import inline_callbacks, maybe_deferred, DeferredListFactory
 from pycloudia.decorators import generate_dict
 
 
@@ -27,7 +27,7 @@ class ChannelsRegistry(object):
         deferred_list = []
         for channel in self.channels_map.values():
             deferred_list.append(self._create_deferred_channel_run(channel))
-        return self._create_deferred_list(deferred_list)
+        return DeferredListFactory.create_all_or_nothing(deferred_list)
 
     @inline_callbacks
     def _create_deferred_channel_run(self, channel):
@@ -56,9 +56,3 @@ class ChannelsRegistry(object):
             channel.port,
             start_duration
         )
-
-    def _create_deferred_list(self, deferred_list):
-        return DeferredList(deferred_list, fireOnOneErrback=True, consumeErrors=True).addErrback(self._restore_failure)
-
-    def _restore_failure(self, failure):
-        return failure.value.subFailure

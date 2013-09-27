@@ -1,39 +1,36 @@
-from pycloudia.channels.registry import ChannelsRegistry
-from pycloudia.services.registry import ServicesRegistry
 from pycloudia.defer import inline_callbacks
 
 
-class BaseNode(object):
+class WorkerNode(object):
     reactor = None
+    console = None
+    runtime_factory = None
+    worker_service_factory = None
 
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
+    def __init__(self, options):
+        self.options = options
+        self.runtime = None
+
+    def initialize(self):
+        self.runtime = self.runtime_factory()
+        self.reactor.register_for_shutdown(self._shutdown)
 
     def run(self):
+        self.reactor.call_when_running(self._run)
+        self.reactor.run()
+
+    @inline_callbacks
+    def _run(self):
+        yield self.runtime.install_worker_service(self.worker_service_factory(self.runtime))
+
+    def _shutdown(self):
         raise NotImplementedError()
 
 
-class WorkerNode(BaseNode):
-    config = None
-    channels = {}
-    services = {}
+class ConfigNode(WorkerNode):
+    config_service_factory = None
 
     @inline_callbacks
-    def run(self):
-        channels_config = yield self.config.get_channels()
-        self.channels = self._configure_channels(channels_config)
-        services_config = yield self.config.get_services()
-        self.services = self._configure_services(self.channels, services_config)
-        yield self.channels.run()
-        yield self.services.run()
-
-    def _configure_channels(self, channels_config):
-        registry = ChannelsRegistry()
-        registry.configure(channels_config.get_bean_list())
-        return registry
-
-    def _configure_services(self, channels, services_config):
-        registry = ServicesRegistry(self.config, channels)
-        registry.configure(services_config.get_bean_list())
-        return registry
+    def _run(self):
+        yield self.runtime.install_config_service(self.config_service_factory())
+        yield super(ConfigNode, self)._run()
