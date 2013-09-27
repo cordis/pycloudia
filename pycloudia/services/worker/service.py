@@ -1,34 +1,53 @@
-from pycloudia.defer import inline_callbacks
+from pycloudia.defer import inline_callbacks, maybe_deferred
 from pycloudia.channels.declarative import dealer
 from pycloudia.services import config
-from pycloudia.services.worker.messages import OnlineMessage
+from pycloudia.services.worker.messages import InitMessage, PingMessage
 
 
 class Service(object):
-    worker_id = None
+    reactor = None
     request_factory = None
+    response_factory = None
     processor_factory = None
 
     config = dealer(config.CHANNEL.WORKERS)
 
     def __init__(self, runtime):
         self.runtime = runtime
+        self.worker_id = None
+        self.ping = None
 
     @inline_callbacks
     def initialize(self):
-        yield self.get_config_subscription(self._create_online_message())
+        package = yield self.send_config_message(self._create_init_message())
+        response = self.response_factory(package)
+        self.runtime.set_identity(response.worker_id)
+        self.ping.set_message(self._create_ping_message())
 
-    def _create_online_message(self):
-        return OnlineMessage(
-            self.worker_id,
+    def _create_init_message(self):
+        return InitMessage(
             self.runtime.options.internal_host,
             self.runtime.options.extrenal_host
         )
 
+    def _create_ping_message(self):
+        return PingMessage()
+
     @config.broadcast
-    def get_config_subscription(self, package):
+    def send_config_message(self, package):
         pass
 
     @config.listen
+    @inline_callbacks
     def process_config_message(self, package):
-        pass
+        request = self.request_factory(package)
+        processor = self.processor_factory(self, request)
+        yield self.reactor.call(processor.process)
+
+    @inline_callbacks
+    def run(self):
+        yield maybe_deferred(self.ping.start)
+
+    @inline_callbacks
+    def shutdown(self):
+        yield maybe_deferred(self.ping.stop)

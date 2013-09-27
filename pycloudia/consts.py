@@ -15,6 +15,7 @@ class PACKAGE(object):
         RESOURCE = 'X-Resource'
         WORKER_ID = 'X-Worker-Id'
         TIMESTAMP = 'X-Timestamp'
+        CLUSTER = 'X-Cluster'
 
 
 class DISPATCHER(object):

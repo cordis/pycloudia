@@ -1,5 +1,5 @@
 from pycloudia.defer import inline_callbacks, return_value, deferrable
-from pycloudia.channels.declarative import router
+from pycloudia.channels.declarative import router, dealer
 from pycloudia.channels.consts import IMPL
 from pycloudia.services.config.consts import CHANNEL
 
@@ -11,7 +11,8 @@ class Service(object):
     processor_factory = None
 
     workers = router(CHANNEL.WORKERS)
-    manager = router(CHANNEL.MANAGERS, impl=IMPL.HTTP)
+    replicas = dealer(CHANNEL.REPLICAS)
+    managers = router(CHANNEL.MANAGERS, impl=IMPL.HTTP)
 
     @deferrable
     def initialize(self):
@@ -19,17 +20,22 @@ class Service(object):
 
     @workers.listen
     @inline_callbacks
-    def process_worker_request(self, package, worker_id):
+    def process_worker_request(self, package, client_id):
         request = self.request_factory(package)
-        processor = self.processor_factory(request)
-        response = yield self.reactor.call(worker_id, processor.process, request)
+        processor = self.processor_factory(self, request)
+        worker_id = self.state.get_or_create_worker_id(client_id)
+        response = yield self.reactor.call_entirely(processor.process, worker_id)
         return_value(response)
 
     @workers.route
-    def send_message_to_worker(self, package, worker_id):
+    def send_worker_message(self, package, worker_id):
         pass
 
-    @manager.listen
+    @replicas.broadcast
+    def send_replica_message(self, package):
+        pass
+
+    @managers.listen
     @inline_callbacks
     def process_manage_request(self, package):
         # @TODO: authentication

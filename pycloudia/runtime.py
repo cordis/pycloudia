@@ -1,3 +1,4 @@
+from collections import namedtuple
 from logging import getLogger
 from inspect import getmembers
 from itertools import ifilter, imap
@@ -7,78 +8,103 @@ from time import time
 from pycloudia.channels.address import Address
 from pycloudia.decorators import generate_list
 from pycloudia.defer import inline_callbacks, maybe_deferred
-from pycloudia.channels.declarative import ChannelDecorator
+from pycloudia.channels.declarative import ChannelDeclaration
 from pycloudia.services.config import CHANNEL
+
+
+ServiceIdentity = namedtuple('BaseServiceIdentity', 'cls identity')
+ChannelIdentity = namedtuple('BaseServiceChannel', 'service_identity channel_name channel_method')
 
 
 class Runtime(object):
     logger = getLogger('pycloudia.runtime')
+    reactor = None
+
+    identity = None
 
     socket_factory_registry = None
     channel_factory = None
 
     def __init__(self, options):
         self.options = options
-        self.channel_decorator_map = {}
+        self.services = {}
+        self.channels = {}
+        self.config_endpoint_list = ConfigAddressList(self.options)
+
+    def set_identity(self, identity):
+        self.identity = identity
 
     def install_config_service(self, service):
-        worker_request_channel_decorator = self._get_config_channel_decorator(service)
-        self.install_channel_decorator(worker_request_channel_decorator)
-        for address in self._get_config_address_list():
-            if address.host in (self.options.internal_host, self.options.external_host):
-                self.run_channel(worker_request_channel_decorator.channel_name, address)
-                break
-        else:
-            raise KeyError('No one of config addresses matches localhost')
+        service_identity = self._create_service_identity(service)
+        workers_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.WORKERS)
+        channel_pool = self._get_or_run_channel_pool(service_identity, workers_channel_declaration)
+        channel_pool.extend_endpoints(self.config_endpoint_list.get_local())
+        replicas_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.REPLICAS)
+        channel_pool = self._get_or_run_channel_pool(service, replicas_channel_declaration)
+        channel_pool.extend_endpoints(*self.config_endpoint_list.get_remotes())
         return self.run_service(service)
 
     def install_worker_service(self, service):
-        config_request_channel_decorator = self._get_config_channel_decorator(service)
-        self.install_channel_decorator(config_request_channel_decorator)
-        for address in self._get_config_address_list():
-            self.run_channel(config_request_channel_decorator.channel_name, address)
+        config_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.WORKERS)
+        channel_pool = self._get_or_run_channel_pool(service, config_channel_declaration)
+        channel_pool.extend_endpoints(self.config_endpoint_list.get_all())
         return self.run_service(service)
 
-    def _get_config_channel_decorator(self, service):
-        for channel_decorator in self._extract_service_channel_decorators(service):
-            if channel_decorator.options.name == CHANNEL.WORKERS:
-                return channel_decorator
+    def _get_channel_declaration_by_name(self, service, channel_declaration_name):
+        for channel_declaration in self._extract_service_channel_declarations(service):
+            if channel_declaration.options.name == channel_declaration_name:
+                return channel_declaration
         raise KeyError('Config channel not found in service')
 
-    @generate_list
-    def _get_config_address_list(self):
-        for address_string in self.options.config_address_list:
-            yield Address.from_string(address_string)
+    def _create_service_identity(self, service, identity=None):
+        return ServiceIdentity(type(service), identity)
+
+    def _get_or_run_channel_pool(self, service_identity, channel_declaration):
+        channel_identity = self._create_channel_identity(service_identity, channel_declaration)
+        try:
+            return self.channels[channel_identity]
+        except KeyError:
+            channel_pool = self.channels[channel_identity] = self._create_channel_pool(channel_declaration)
+            channel_pool.run()
+            return channel_pool
+
+    def _create_channel_identity(self, service_identity, channel_declaration):
+        return ChannelIdentity(service_identity, channel_declaration.name, channel_declaration.method)
+
+    def _create_channel_pool(self, channel_declaration):
+        raise NotImplementedError()
+
+    # -----------------------------------------------------------------------------------------------------------------
 
     @inline_callbacks
     def install_service(self, service):
-        for method_name, channel_decorator in self._extract_service_channel_decorators(service):
-            self.install_channel_decorator(channel_decorator)
+        for method_name, channel_declaration in self._extract_service_channel_declarations(service):
+            self.install_channel_declaration(channel_declaration)
 
-    def _extract_service_channel_decorators(self, service):
+    def _extract_service_channel_declarations(self, service):
         members = imap(itemgetter('1'), getmembers(service))
         return ifilter(self._is_channel_method, members)
 
     def _is_channel_method(self, member):
-        return callable(member) and isinstance(member, ChannelDecorator)
+        return callable(member) and isinstance(member, ChannelDeclaration)
 
-    def install_channel_decorator(self, channel_decorator):
-        self.channel_decorator_map[channel_decorator.name] = channel_decorator
+    def install_channel_declaration(self, channel_declaration):
+        self.channels[channel_declaration.name] = channel_declaration
 
     def run_channel(self, channel_name, address=None):
-        channel_decorator = self.channel_decorator_map[channel_name]
-        channel, created = self._get_or_create_channel(channel_decorator, address)
-        channel_decorator.add_handler(channel.get_handler())
+        channel_declaration = self.channels[channel_name]
+        channel, created = self._get_or_create_channel(channel_declaration, address)
+        channel_declaration.add_handler(channel.get_handler())
         if created:
             channel.run()
 
-    def _get_or_create_channel(self, channel_decorator, address):
-        socket_factory = self._get_socket_factory(channel_decorator)
-        socket = socket_factory(channel_decorator.name, channel_decorator.method, address.host, address.port)
+    def _get_or_create_channel(self, channel_declaration, address):
+        socket_factory = self._get_socket_factory(channel_declaration)
+        socket = socket_factory(channel_declaration.name, channel_declaration.method, address.host, address.port)
         return self.channel_factory(socket), True
 
-    def _get_socket_factory(self, channel_decorator):
-        return self.socket_factory_registry[channel_decorator.impl]
+    def _get_socket_factory(self, channel_declaration):
+        return self.socket_factory_registry[channel_declaration.impl]
 
     @inline_callbacks
     def run_service(self, service):
@@ -108,3 +134,23 @@ class Runtime(object):
             service.port,
             start_duration
         )
+
+
+class ConfigAddressList(object):
+    def __init__(self, options):
+        self.options = options
+
+    def get_remotes(self):
+        return set(self.get_all()) - {self.get_local()}
+
+    def get_local(self):
+        for address in self.get_all():
+            if address.host in (self.options.internal_host, self.options.external_host):
+                return address
+        else:
+            raise KeyError('No one of config addresses matches localhost')
+
+    @generate_list
+    def get_all(self):
+        for address_string in self.options.config_address_list:
+            yield Address.from_string(address_string)

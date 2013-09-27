@@ -1,7 +1,6 @@
 import collections
 import functools
 
-from pycloudia.defer import DeferredListFactory, maybe_deferred
 from pycloudia.channels.consts import METHOD
 
 
@@ -11,24 +10,22 @@ __all__ = ['dealer', 'router', 'push', 'sink', 'blow', 'pull', 'publish', 'subsc
 ChannelOptions = collections.namedtuple('BaseChannelOptions', '''
 name
 impl
-internal
-external
+args
+kwargs
 ''')
 
 
 class ChannelDeclaration(object):
-    bridge = None
-    listeners = []
-
-    def __init__(self, name, impl=None, internal=True, external=False):
-        assert internal or external
-        self.options = ChannelOptions(name, impl, internal, external)
+    def __init__(self, name, impl=None, *args, **kwargs):
+        self.options = ChannelOptions(name, impl, args, kwargs)
+        self.handler = None
+        self.listener = None
 
     def listen(self, func):
-        self.listeners.append(func)
+        self.listener = func
 
     def _decorate_or_proxy(self, method_name, func_or_package, *args, **kwargs):
-        method = getattr(self.bridge, method_name)
+        method = getattr(self.handler, method_name)
 
         if callable(func_or_package):
             wrapper = functools.wraps(func_or_package)
@@ -36,15 +33,9 @@ class ChannelDeclaration(object):
         else:
             return method(func_or_package, *args, **kwargs)
 
-    def set_bridge(self, bridge):
-        self.bridge = bridge
-        self.bridge.set_callback(self._callback)
-
-    def _callback(self, package, *args, **kwargs):
-        deferred_list = []
-        for listener in self.listeners:
-            deferred_list.append(maybe_deferred(listener, package, *args, **kwargs))
-        return DeferredListFactory.create_all_or_nothing(deferred_list)
+    def set_handler(self, handler):
+        self.handler = handler
+        self.handler.set_callback(self.listener)
 
 
 class NoListenBehavior(object):

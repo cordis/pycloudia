@@ -17,10 +17,15 @@ class ReactorCollection(object):
     def get(self, hashable):
         return HashableReactor(self, hashable)
 
-    def call(self, hashable, func, *args, **kwargs):
-        return self.call_later(hashable, 0, func, *args, **kwargs)
+    def call_entirely(self, hashable, func, *args, **kwargs):
+        return self.call_entirely_later(hashable, 0, func, *args, **kwargs)
 
-    def call_later(self, hashable, seconds, func, *args, **kwargs):
+    def call_entirely_later(self, hashable, seconds, func, *args, **kwargs):
+        if callable(seconds):
+            seconds, func = hashable, seconds
+            args = list(args)
+            args.insert(0, func)
+            hashable = None
         deferred = Deferred()
         self.state.call_later(hashable, seconds, ReactiveQueueTask(func, args, kwargs, deferred))
         return deferred

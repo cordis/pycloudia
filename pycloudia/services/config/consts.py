@@ -1,3 +1,4 @@
 class CHANNEL(object):
-    WORKERS = 'worker_listener'
-    MANAGERS = 'manager_listener'
+    WORKERS = 'config_worker'
+    REPLICAS = 'config_replica'
+    MANAGERS = 'config_manager'

@@ -26,7 +26,16 @@ class ChannelSchema(Schema):
     port = Str()
 
 
+class InitRequestSchema(Schema):
+    internal_host = Str()
+    external_host = Str()
+
+
 class InitResponseSchema(Schema):
+    worker_id = Str()
+
+
+class OldInitResponseSchema(Schema):
     services = List(Builder(ServiceSchema))
     channels = List(Builder(ChannelSchema))
 
