@@ -1,42 +1,34 @@
-from pycloudia.defer import inline_callbacks, return_value, deferrable
-from pycloudia.channels.declarative import router, dealer
-from pycloudia.channels.consts import IMPL
-from pycloudia.services.config.consts import CHANNEL
+class ConfigService(object):
+    worker_state_factory = None
 
+    def __init__(self, runtime):
+        self.runtime = runtime
+        self.workers = {}
 
-class Service(object):
-    reactor = None
-    state_factory = None
-    request_factory = None
-    processor_factory = None
+    def get_or_create_worker_id(self, identity):
+        try:
+            return self.workers[identity].get_id()
+        except KeyError:
+            worker = self.workers[identity] = self.worker_state_factory(identity)
+            return worker.get_id()
 
-    workers = router(CHANNEL.WORKERS)
-    replicas = dealer(CHANNEL.REPLICAS)
-    managers = router(CHANNEL.MANAGERS, impl=IMPL.HTTP)
+    def init_worker(self, worker_id, host):
+        self.workers[worker_id]
 
-    @deferrable
-    def initialize(self):
-        self.state = self.state_factory()
-
-    @workers.listen
-    @inline_callbacks
-    def process_worker_request(self, package, client_id):
-        request = self.request_factory(package)
-        processor = self.processor_factory(self, request)
-        worker_id = self.state.get_or_create_worker_id(client_id)
-        response = yield self.reactor.call_entirely(processor.process, worker_id)
-        return_value(response)
-
-    @workers.route
-    def send_worker_message(self, package, worker_id):
+    def ping_worker(self, worker_id, timestamp):
         pass
 
-    @replicas.broadcast
-    def send_replica_message(self, package):
+    def add_replica(self, worker_id):
         pass
 
-    @managers.listen
-    @inline_callbacks
-    def process_manage_request(self, package):
-        # @TODO: authentication
-        pass
+
+class WorkersRegistry(object):
+    def __init__(self):
+        self.workers_by_external_id = {}
+        self.workers_by_internal_id = {}
+
+    def get_by_external_id(self, external_id):
+        return self.workers_by_external_id[external_id]
+
+    def get_by_external_id(self, external_id):
+        return self.workers_by_external_id[external_id]

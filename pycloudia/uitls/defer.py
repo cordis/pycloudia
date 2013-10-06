@@ -16,10 +16,10 @@ maybe_deferred = maybeDeferred
 return_value = returnValue
 
 
-def deferrable(function):
-    @wraps(function)
+def deferrable(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
-        return maybe_deferred(function, *args, **kwargs)
+        return maybe_deferred(func, *args, **kwargs)
     return wrapper
 
 

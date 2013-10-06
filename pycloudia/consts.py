@@ -12,10 +12,12 @@ class PACKAGE(object):
         class FORMAT(object):
             DELIMITER = ':'
 
-        RESOURCE = 'X-Resource'
+        REQUEST_ID = 'X-Request-Id'
         WORKER_ID = 'X-Worker-Id'
         TIMESTAMP = 'X-Timestamp'
+        RESOURCE = 'X-Resource'
         CLUSTER = 'X-Cluster'
+        CONFIG = 'X-Config'
 
 
 class DISPATCHER(object):

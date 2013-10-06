@@ -1,4 +1,4 @@
-from pycloudia.channels.channel import Channel
+from pycloudia.channels.channels import Channel
 from pycloudia.packages.decoder import PackageDecoder
 from pycloudia.packages.encoder import PackageEncoder
 

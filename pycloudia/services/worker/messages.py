@@ -3,9 +3,8 @@ from pycloudia.services.config.schemas import InitRequestSchema
 
 
 class InitMessage(object):
-    def __init__(self, internal_host, external_host):
-        self.internal_host = internal_host
-        self.external_host = external_host
+    def __init__(self, host):
+        self.host = host
 
     def create_package_content(self):
         return InitRequestSchema().encode(self)

@@ -5,9 +5,11 @@ from pycloudia.channels.txzmq_impl.sockets import *
 
 
 class SocketFactory(object):
+    DEFAULT_PROTOCOL = 'tcp'
+
     method_to_cls_map = {
-        METHOD.REQUEST: DealerSocket,
-        METHOD.RESPOND: RouterSocket,
+        METHOD.DEALER: DealerSocket,
+        METHOD.ROUTER: RouterSocket,
         METHOD.PUSH: PushSocket,
         METHOD.SINK: SinkSocket,
         METHOD.BLOW: BlowSocket,
@@ -25,5 +27,5 @@ class SocketFactory(object):
         address = self._create_address(host, port)
         return socket_cls(self.zmq_factory, address, *args, **kwargs)
 
-    def _create_address(self, host, port, protocol='tcp'):
+    def _create_address(self, host, port, protocol=DEFAULT_PROTOCOL):
         return '%s://%s:%d' % protocol, host, port

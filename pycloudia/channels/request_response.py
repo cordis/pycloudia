@@ -16,6 +16,7 @@ class RequestResponseRegistry(object):
         request_id = str(self.request_id_factory())
         self.id_map[request_id] = deferred
         self.reactor.call_later(self.ttl, self.expire, request_id)
+        return request_id
 
     def expire(self, request_id):
         try:

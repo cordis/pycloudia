@@ -14,6 +14,7 @@ class PingRequest(object):
 
 class InitRequest(object):
     cluster = None
+    has_config = None
     internal_host = None
     external_host = None
     timestamp = None

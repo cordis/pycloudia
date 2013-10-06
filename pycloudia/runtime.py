@@ -6,8 +6,8 @@ from operator import itemgetter
 from time import time
 
 from pycloudia.channels.address import Address
-from pycloudia.decorators import generate_list
-from pycloudia.defer import inline_callbacks, maybe_deferred
+from pycloudia.uitls.decorators import generate_list
+from pycloudia.uitls.defer import inline_callbacks, maybe_deferred
 from pycloudia.channels.declarative import ChannelDeclaration
 from pycloudia.services.config import CHANNEL
 
@@ -36,16 +36,16 @@ class Runtime(object):
 
     def install_config_service(self, service):
         service_identity = self._create_service_identity(service)
-        workers_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.WORKERS)
+        workers_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.CONFIG)
         channel_pool = self._get_or_run_channel_pool(service_identity, workers_channel_declaration)
         channel_pool.extend_endpoints(self.config_endpoint_list.get_local())
-        replicas_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.REPLICAS)
+        replicas_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.CONFIG)
         channel_pool = self._get_or_run_channel_pool(service, replicas_channel_declaration)
         channel_pool.extend_endpoints(*self.config_endpoint_list.get_remotes())
         return self.run_service(service)
 
     def install_worker_service(self, service):
-        config_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.WORKERS)
+        config_channel_declaration = self._get_channel_declaration_by_name(service, CHANNEL.CONFIG)
         channel_pool = self._get_or_run_channel_pool(service, config_channel_declaration)
         channel_pool.extend_endpoints(self.config_endpoint_list.get_all())
         return self.run_service(service)

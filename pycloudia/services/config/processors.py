@@ -1,4 +1,4 @@
-from pycloudia.defer import deferrable
+from pycloudia.uitls.defer import deferrable
 from pycloudia.services.config.requests import PingRequest, InitRequest
 from pycloudia.services.config.messages import PingResponse, InitResponse
 
@@ -23,8 +23,10 @@ class PingProcessor(BaseProcessor):
 class InitProcessor(BaseProcessor):
     @deferrable
     def process(self, worker_id):
-        self.service.init_worker(worker_id, self.request)
+        self.service.init_worker(worker_id, self.request.host)
         self.service.ping_worker(worker_id, self.request.timestamp)
+        if self.request.has_config:
+            self.service.add_replica(worker_id)
         return InitResponse(worker_id)
 
 

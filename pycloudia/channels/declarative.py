@@ -19,10 +19,10 @@ class ChannelDeclaration(object):
     def __init__(self, name, impl=None, *args, **kwargs):
         self.options = ChannelOptions(name, impl, args, kwargs)
         self.handler = None
-        self.listener = None
+        self.consumer = None
 
-    def listen(self, func):
-        self.listener = func
+    def consume(self, func):
+        self.consumer = func
 
     def _decorate_or_proxy(self, method_name, func_or_package, *args, **kwargs):
         method = getattr(self.handler, method_name)
@@ -35,16 +35,16 @@ class ChannelDeclaration(object):
 
     def set_handler(self, handler):
         self.handler = handler
-        self.handler.set_callback(self.listener)
+        self.handler.set_consumer(self.consumer)
 
 
-class NoListenBehavior(object):
-    def listen(self, *args, **kwargs):
+class NoConsumeBehavior(object):
+    def consume(self, *args, **kwargs):
         raise NotImplementedError()
 
 
 class DealerDeclaration(ChannelDeclaration):
-    method = METHOD.REQUEST
+    method = METHOD.DEALER
 
     def route(self, package_or_func, *client_id_list):
         return self._decorate_or_proxy('route', package_or_func, *client_id_list)
@@ -54,7 +54,7 @@ class DealerDeclaration(ChannelDeclaration):
 
 
 class RouterDeclaration(ChannelDeclaration):
-    method = METHOD.RESPOND
+    method = METHOD.ROUTER
 
     def route(self, package_or_func, *client_id_list):
         return self._decorate_or_proxy('route', package_or_func, *client_id_list)
@@ -63,7 +63,7 @@ class RouterDeclaration(ChannelDeclaration):
         return self._decorate_or_proxy('broadcast', package_or_func)
 
 
-class PushDeclaration(ChannelDeclaration, NoListenBehavior):
+class PushDeclaration(ChannelDeclaration, NoConsumeBehavior):
     method = METHOD.PUSH
 
     def route(self, package_or_func, *client_id_list):
@@ -77,7 +77,7 @@ class SinkDeclaration(ChannelDeclaration):
     method = METHOD.SINK
 
 
-class BlowDeclaration(ChannelDeclaration, NoListenBehavior):
+class BlowDeclaration(ChannelDeclaration, NoConsumeBehavior):
     method = METHOD.BLOW
 
     def produce(self, package_or_func):
@@ -88,7 +88,7 @@ class PullDeclaration(ChannelDeclaration):
     method = METHOD.PULL
 
 
-class PubDeclaration(ChannelDeclaration, NoListenBehavior):
+class PubDeclaration(ChannelDeclaration, NoConsumeBehavior):
     method = METHOD.PUB
 
     def produce(self, package_or_func):

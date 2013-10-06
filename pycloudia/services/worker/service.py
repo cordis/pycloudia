@@ -1,4 +1,4 @@
-from pycloudia.defer import inline_callbacks, maybe_deferred
+from pycloudia.uitls.defer import inline_callbacks, maybe_deferred
 from pycloudia.channels.declarative import dealer
 from pycloudia.services import config
 from pycloudia.services.worker.messages import InitMessage, PingMessage
@@ -37,7 +37,7 @@ class Service(object):
     def send_config_message(self, package):
         pass
 
-    @config.listen
+    @config.consume
     @inline_callbacks
     def process_config_message(self, package):
         request = self.request_factory(package)

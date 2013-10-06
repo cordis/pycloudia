@@ -6,8 +6,8 @@ class IMPL(object):
 
 
 class METHOD(object):
-    REQUEST = 'request'
-    RESPOND = 'respond'
+    DEALER = 'dealer'
+    ROUTER = 'router'
     PUSH = 'push'
     SINK = 'sink'
     BLOW = 'blow'
