@@ -1,19 +1,14 @@
-from collections import namedtuple
-
-from twisted.internet.protocol import DatagramProtocol
-
-from pycloudia.devices.consts import DEVICE
 from pycloudia.reactor.interfaces import ReactorInterface
-from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred, deferrable
+from pycloudia.uitls.defer import inline_callbacks
+from pycloudia.devices.discovery.director import DiscoveryDirector
 
 
 class Device(object):
     reactor = ReactorInterface()
     console = None
 
-    def __init__(self, host, port, group=None, roles=None):
-        self.host = host
-        self.port = port
+    def __init__(self, address, group=None, roles=None):
+        self.address = address
         self.group = group
         self.roles = roles or []
 #        self.cluster = Cluster(options)
@@ -25,14 +20,12 @@ class Device(object):
 
     @inline_callbacks
     def _run(self):
-        yield self._create_discovery().start()
+        yield self._create_discoverer().start()
 
-    def _create_discovery(self):
-        protocol = DiscoveryUdpProtocol(self)
-        protocol.reactor = self.reactor
-        return protocol
+    def _create_discoverer(self):
+        discoverer = DiscoveryDirector(self.address)
+        discoverer.reactor = self.reactor
+        return discoverer
 
     def _shutdown(self):
         raise NotImplementedError()
-
-

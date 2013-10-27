@@ -1,12 +1,8 @@
-from collections import namedtuple
-
 from twisted.internet.protocol import DatagramProtocol
 
-from pycloudia.devices.consts import DEVICE
 from pycloudia.uitls.defer import inline_callbacks, maybe_deferred
-
-
-Address = namedtuple('Address', 'host port')
+from pycloudia.uitls.net import Address
+from pycloudia.devices.consts import DEVICE
 
 
 class DiscoveryUdpProtocol(DatagramProtocol):

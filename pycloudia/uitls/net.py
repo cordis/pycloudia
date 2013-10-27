@@ -1,6 +1,13 @@
+import collections
 import socket
 import fcntl
 import struct
+
+
+__all__ = ['Address', 'get_ip_address']
+
+
+Address = collections.namedtuple('Address', 'host port')
 
 
 SIOCGIFADDR = 0x8915
