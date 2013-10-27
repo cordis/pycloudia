@@ -1,5 +1,7 @@
 from pycloudia.reactor.interfaces import ReactorInterface
 from pycloudia.uitls.defer import inline_callbacks, Deferred, deferrable
+from pycloudia.channels import METHOD
+from pycloudia.channels.txzmq_impl import SocketFactory
 from pycloudia.devices.consts import DEVICE
 from pycloudia.devices.discovery.udp import DiscoveryUdpProtocol
 
@@ -8,12 +10,15 @@ class DiscoveryDirector(object):
     reactor = ReactorInterface()
     multicast_factory = DiscoveryUdpProtocol
     heartbeat_interval = DEVICE.UDP.HEARTBEAT_INTERVAL
+    zmq_socket_factory = SocketFactory()
 
-    def __init__(self, address, interface=''):
+    def __init__(self, identity, address, interface=''):
+        self.identity = identity
         self.address = address
         self.interface = interface
         self.multicast = None
         self.heartbeat = None
+        self.router = None
         self.peers = {}
 
     @inline_callbacks
@@ -23,11 +28,12 @@ class DiscoveryDirector(object):
         yield self._start_heartbeat()
 
     def _start_router(self):
-        raise NotImplementedError()
+        self.router = self.zmq_socket_factory(METHOD.ROUTER, self.address, identity=self.identity)
+        self.router.start(self._process_router_message)
 
     def _start_multicast(self):
         deferred = Deferred()
-        self.multicast = self.multicast_factory(self)
+        self.multicast = self.multicast_factory(self._process_multicast_message)
         self.multicast.set_start_callback(deferred.callback)
         self.reactor.call_feature(
             'listenMulticast',
@@ -46,5 +52,8 @@ class DiscoveryDirector(object):
     def _send_heartbeat(self):
         self.multicast.send('BEACON')
 
-    def process_multicast_message(self, data, host):
+    def _process_router_message(self, message):
+        pass
+
+    def _process_multicast_message(self, message, host):
         pass

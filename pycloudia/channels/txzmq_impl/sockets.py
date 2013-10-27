@@ -29,7 +29,7 @@ class BaseSocket(object):
     def _generate_guid(self):
         return ':'.join(self.endpoint)
 
-    def run(self, callback):
+    def start(self, callback):
         assert self.connection is None
         self.callback = callback
         self.connection = self._create_connection()
@@ -63,9 +63,12 @@ class RouterSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.bind
     connection_factory = RouterSocketConnection
 
-    def _on_message_received(self, message_list):
-        guid, message = message_list
-        return self.callback(message, guid)
+    def _on_message_received(self, message, identities=None):
+
+        class MessageWrapper(type(message)):
+            identities = identities
+
+        return self.callback(MessageWrapper(message))
 
 
 class PushSocket(BaseSocket):

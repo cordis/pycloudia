@@ -22,10 +22,14 @@ class SocketFactory(object):
         self.zmq_factory = ZmqFactory()
         self.zmq_factory.registerForShutdown()
 
-    def __call__(self, name, method, host, port, *args, **kwargs):
+    def __call__(self, method, address, *args, **kwargs):
+        """
+        :rtype: pycloudia.channels.txzmq_impl.sockets.BaseSocket
+        """
         socket_cls = self.method_to_cls_map[method]
-        address = self._create_address(host, port)
+        address = self.create_zmq_address(address)
         return socket_cls(self.zmq_factory, address, *args, **kwargs)
 
-    def _create_address(self, host, port, protocol=DEFAULT_PROTOCOL):
-        return '%s://%s:%d' % protocol, host, port
+    @staticmethod
+    def create_zmq_address(address, protocol=DEFAULT_PROTOCOL):
+        return '%s://%s:%d' % protocol, address.host, address.port

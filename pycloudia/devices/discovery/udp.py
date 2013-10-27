@@ -8,8 +8,8 @@ from pycloudia.devices.consts import DEVICE
 class DiscoveryUdpProtocol(DatagramProtocol):
     address = Address(DEVICE.UDP.HOST, DEVICE.UDP.PORT)
 
-    def __init__(self, director):
-        self.director = director
+    def __init__(self, callback):
+        self.callback = callback
         self.start_callback = lambda _: None
 
     def set_start_callback(self, func):
@@ -24,4 +24,4 @@ class DiscoveryUdpProtocol(DatagramProtocol):
         self.transport.write(message, self.address)
 
     def datagramReceived(self, data, address):
-        self.director.process_multicast_message(data, Address(*address))
+        self.callback(data, Address(*address))

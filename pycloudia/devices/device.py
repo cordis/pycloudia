@@ -1,9 +1,13 @@
+from uuid import uuid1
+
 from pycloudia.reactor.interfaces import ReactorInterface
 from pycloudia.uitls.defer import inline_callbacks
 from pycloudia.devices.discovery.director import DiscoveryDirector
 
 
 class Device(object):
+    identity_factory = uuid1
+
     reactor = ReactorInterface()
     console = None
 
@@ -11,6 +15,7 @@ class Device(object):
         self.address = address
         self.group = group
         self.roles = roles or []
+        self.identity = self.identity_factory()
 #        self.cluster = Cluster(options)
 #        self.threads = Threads()
 
@@ -23,7 +28,7 @@ class Device(object):
         yield self._create_discoverer().start()
 
     def _create_discoverer(self):
-        discoverer = DiscoveryDirector(self.address)
+        discoverer = DiscoveryDirector(self.identity, self.address)
         discoverer.reactor = self.reactor
         return discoverer
 

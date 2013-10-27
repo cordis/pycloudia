@@ -1,24 +1,56 @@
 from zope.interface import implements
-from pycloudia.consts import PACKAGE
 
+from pycloudia.consts import PACKAGE
 from pycloudia.uitls.defer import deferrable, inline_callbacks, maybe_deferred, Deferred
+from pycloudia.channels.responder import ResponderNotFoundError
 from pycloudia.channels.interfaces import *
 
 
 class BaseChannel(object):
-    request_response_registry = None
     package_decoder = None
     package_encoder = None
 
-    def __init__(self, guid, handler):
-        self.guid = guid
+    def __init__(self, identity, handler):
+        self.identity = identity
         self.handler = handler
+
+
+class BiDirectionalChannel(BaseChannel):
+    responder = None
+
+    def __init__(self, identity, handler, peers):
+        super(BiDirectionalChannel, self).__init__(identity, handler)
+        self.peers = peers
+
+    def send_request(self, peer_identity, package):
+        deferred = self._register_request(package)
+        self.send_package(peer_identity, package)
+        return deferred
 
     def _register_request(self, package):
         deferred = Deferred()
-        request_id = self.request_response_registry.set(deferred)
+        request_id = self.responder.set(deferred)
         package.get_headers()[PACKAGE.HEADER.REQUEST_ID] = request_id
         return deferred
+
+    @inline_callbacks
+    def _on_message_received(self, message, peer_identity):
+        incoming_package = self.package_decoder.decode(message)
+        try:
+            request_id = incoming_package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
+            self.responder.resolve(request_id, incoming_package)
+        except (KeyError, ResponderNotFoundError):
+            yield self._process_request(incoming_package, peer_identity)
+
+    @inline_callbacks
+    def _process_request(self, incoming_package, peer_identity):
+        outgoing_package = yield maybe_deferred(self.handler.consume, incoming_package)
+        if outgoing_package is not None:
+            self.send_package(peer_identity, outgoing_package)
+
+    def send_package(self, peer_identity, package):
+        message = self.package_encoder.encode(package)
+        self.peers.send(peer_identity, message)
 
 
 class ServerChannel(BaseChannel):
@@ -29,22 +61,6 @@ class ServerChannel(BaseChannel):
             self.socket.stop()
         self.socket = socket
         self.socket.run(self._on_message_received)
-
-    @inline_callbacks
-    def _on_message_received(self, message, client_id):
-        incoming_package = self.package_decoder.decode(message)
-        response = yield maybe_deferred(self.handler.consume, incoming_package)
-        if response is not None:
-            self.send_to_client(client_id, response)
-
-    def request_client(self, client_id, package):
-        deferred = self._register_request(package)
-        self.send_to_client(client_id, package)
-        return deferred
-
-    def send_to_client(self, client_id, package):
-        message = self.package_encoder.encode(package)
-        self.socket.send(client_id, message)
 
 
 class ClientChannel(BaseChannel):
