@@ -1,6 +1,6 @@
 from zope.interface import implementer
 
-from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.reactor.interfaces import ReactorInterface, LoopingCallInterface
 from pycloudia.uitls.defer import Deferred
 
 
@@ -63,3 +63,28 @@ class ReactorAdapter(object):
         deferred.addCallback(lambda _: func(*args, **kwargs))
         delayed_call = self.subject.callLater(seconds, deferred.callback, None)
         return deferred
+
+    def create_looping_call(self, func, *args, **kwargs):
+        from twisted.internet.task import LoopingCall
+
+        @implementer(LoopingCallInterface)
+        class LoopingCallAdapter(LoopingCall):
+            pass
+
+        looping_call = LoopingCallAdapter(func, *args, **kwargs)
+        looping_call.clock = self.subject
+        return looping_call
+
+    def call_feature(self, name, *args, **kwargs):
+        """
+        :type name: C{str}
+        :param *args: Passed to feature
+        :param **kwargs: Passed to feature
+        :rtype: C{object} or C{None}
+        """
+        if not hasattr(self.subject, name):
+            raise NotImplementedError(name)
+        func = getattr(self.subject, name)
+        if not callable(func):
+            raise ValueError('Feature {0} is not callable'.format(name))
+        return func(*args, **kwargs)
