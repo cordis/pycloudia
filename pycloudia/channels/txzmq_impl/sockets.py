@@ -19,14 +19,14 @@ class BaseSocket(object):
     endpoint_type = NotImplemented
     connection_factory = NotImplemented
 
-    def __init__(self, zmq_factory, address, guid=None):
+    def __init__(self, zmq_factory, address, identity=None):
         self.factory = zmq_factory
         self.endpoint = ZmqEndpoint(self.endpoint_type, address),
-        self.guid = guid or self._generate_guid()
+        self.identity = identity
         self.callback = None
         self.connection = None
 
-    def _generate_guid(self):
+    def _generate_identity(self):
         return ':'.join(self.endpoint)
 
     def start(self, callback):
@@ -35,16 +35,8 @@ class BaseSocket(object):
         self.connection = self._create_connection()
 
     def _create_connection(self):
-        return self.connection_factory(
-            self._on_message_received,
-            self.factory,
-            self.endpoint,
-            self.guid
-        )
+        return self.connection_factory(self.callback, self.factory, self.endpoint, self.identity)
     
-    def _on_message_received(self, message_list):
-        raise NotImplementedError()
-
     def stop(self):
         assert self.connection is not None
         self.connection.shutdown()
@@ -55,20 +47,14 @@ class DealerSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.connect
     connection_factory = DealerSocketConnection
 
-    def _on_message_received(self, message_list):
-        return self.callback(message_list[0], self.guid)
+    def start(self, callback):
+        assert self.identity is not None
+        super(DealerSocket, self).start(callback)
 
 
 class RouterSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.bind
     connection_factory = RouterSocketConnection
-
-    def _on_message_received(self, message, identities=None):
-
-        class MessageWrapper(type(message)):
-            identities = identities
-
-        return self.callback(MessageWrapper(message))
 
 
 class PushSocket(BaseSocket):
@@ -80,10 +66,6 @@ class SinkSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.bind
     connection_factory = PullSocketConnection
 
-    def _on_message_received(self, message_list):
-        self.callback(message_list[0], None)
-        return None
-
 
 class BlowSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.bind
@@ -94,10 +76,6 @@ class PullSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.connect
     connection_factory = PullSocketConnection
 
-    def _on_message_received(self, message_list):
-        self.callback(message_list[0], self.guid)
-        return None
-
 
 class PubSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.bind
@@ -107,7 +85,3 @@ class PubSocket(BaseSocket):
 class SubSocket(BaseSocket):
     endpoint_type = ZmqEndpointType.connect
     connection_factory = SubSocketConnection
-
-    def _on_message_received(self, message_list):
-        self.callback(message_list[0], self.guid)
-        return None

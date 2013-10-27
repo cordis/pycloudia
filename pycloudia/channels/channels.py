@@ -15,6 +15,22 @@ class BaseChannel(object):
         self.handler = handler
 
 
+class RouterPeers(object):
+    def __init__(self, socket):
+        self.socket = socket
+
+    def send(self, identity, message):
+        self.socket.send(message, identity)
+
+
+class DealerPeers(object):
+    def __init__(self):
+        self.sockets_map = {}
+
+    def send(self, identity, message):
+        self.sockets_map[identity].send(message)
+
+
 class BiDirectionalChannel(BaseChannel):
     responder = None
 

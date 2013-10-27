@@ -24,7 +24,9 @@ class SocketFactory(object):
 
     def __call__(self, method, address, *args, **kwargs):
         """
-        :rtype: pycloudia.channels.txzmq_impl.sockets.BaseSocket
+        :type method: C{str}
+        :type address: C{pycloudia.utils.net.Address}
+        :rtype: C{pycloudia.channels.txzmq_impl.sockets.BaseSocket}
         """
         socket_cls = self.method_to_cls_map[method]
         address = self.create_zmq_address(address)

@@ -17,26 +17,16 @@ class BaseSocketConnection(ZmqConnection):
         self.process_message = staticmethod(callback)
         super(BaseSocketConnection, self).__init__(*args, **kwargs)
 
-    def messageReceived(self, message_parts):
-        assert len(message_parts) == 1
-        self.process_message(message_parts[0])
+    def messageReceived(self, message_part_list):
+        self.process_message(message_part_list)
 
 
 class DealerSocketConnection(BaseSocketConnection):
     socketType = zmq_constants.DEALER
 
-    def forward(self, message, identities=None):
-        identities = identities or []
-        self.send(identities + [message])
-
 
 class RouterSocketConnection(BaseSocketConnection):
     socketType = zmq_constants.ROUTER
-
-    def messageReceived(self, message_parts):
-        assert len(message_parts) > 1
-        message = message_parts.pop()
-        self.process_message(message, identities=message_parts)
 
 
 class PushSocketConnection(BaseSocketConnection):
