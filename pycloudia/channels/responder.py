@@ -25,6 +25,7 @@ class Responder(object):
         assert request_id not in self.registry
         self.registry[request_id] = deferred
         self.reactor.call_later(self.reject, request_id)
+        return deferred
 
     def reject(self, request_id):
         try:

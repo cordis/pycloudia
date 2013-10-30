@@ -53,7 +53,8 @@ class DiscoveryDirector(object):
         self.multicast.send('BEACON')
 
     def _process_router_message(self, message):
-        pass
+        hops = message.hops
+        peer = message.peer
 
     def _process_multicast_message(self, message, host):
         pass

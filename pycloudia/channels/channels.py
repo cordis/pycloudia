@@ -1,9 +1,11 @@
+from collections import deque
 from zope.interface import implements
 
 from pycloudia.consts import PACKAGE
 from pycloudia.uitls.defer import deferrable, inline_callbacks, maybe_deferred, Deferred
-from pycloudia.channels.responder import ResponderNotFoundError
 from pycloudia.channels.interfaces import *
+from pycloudia.channels.responder import ResponderNotFoundError
+from pycloudia.channels.messages import ChannelMessage
 
 
 class BaseChannel(object):
@@ -18,55 +20,79 @@ class BaseChannel(object):
 class RouterPeers(object):
     def __init__(self, socket):
         self.socket = socket
+        self.callback_list = deque()
 
-    def send(self, identity, message):
-        self.socket.send(message, identity)
+    def add_callback(self, callback):
+        self.callback_list.append(callback)
+
+    def send(self, message):
+        self.socket.send(message)
 
 
 class DealerPeers(object):
     def __init__(self):
         self.sockets_map = {}
+        self.callback_list = deque()
 
-    def send(self, identity, message):
-        self.sockets_map[identity].send(message)
+    def add_callback(self, callback):
+        self.callback_list.append(callback)
+
+    def send(self, message):
+        self.sockets_map[message.peer].send(message)
 
 
 class BiDirectionalChannel(BaseChannel):
     responder = None
+    message_factory = ChannelMessage
 
     def __init__(self, identity, handler, peers):
         super(BiDirectionalChannel, self).__init__(identity, handler)
         self.peers = peers
+        self.peers.add_callback(self._on_message_received)
 
-    def send_request(self, peer_identity, package):
+    def send_request(self, package):
         deferred = self._register_request(package)
-        self.send_package(peer_identity, package)
+        self.send_package(package)
         return deferred
 
     def _register_request(self, package):
-        deferred = Deferred()
-        request_id = self.responder.set(deferred)
-        package.get_headers()[PACKAGE.HEADER.REQUEST_ID] = request_id
-        return deferred
+        request_id = package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
+        return self.responder.listen(request_id, Deferred())
 
     @inline_callbacks
-    def _on_message_received(self, message, peer_identity):
-        incoming_package = self.package_decoder.decode(message)
+    def _on_message_received(self, message):
+        incoming_package = self._decode_package(message)
         try:
-            request_id = incoming_package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
-            self.responder.resolve(request_id, incoming_package)
+            self._process_response(incoming_package)
         except (KeyError, ResponderNotFoundError):
-            yield self._process_request(incoming_package, peer_identity)
+            yield self._process_request(incoming_package)
+
+    def _decode_package(self, message):
+        package = self.package_decoder.decode(message)
+        package.get_headers()[PACKAGE.HEADER.PEER] = message.peer
+        package.get_headers()[PACKAGE.HEADER.HOPS] = message.hops
+        return package
+
+    def _process_response(self, incoming_package):
+        request_id = incoming_package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
+        self.responder.resolve(request_id, incoming_package)
 
     @inline_callbacks
-    def _process_request(self, incoming_package, peer_identity):
+    def _process_request(self, incoming_package):
         outgoing_package = yield maybe_deferred(self.handler.consume, incoming_package)
         if outgoing_package is not None:
-            self.send_package(peer_identity, outgoing_package)
+            self.send_package(outgoing_package)
 
-    def send_package(self, peer_identity, package):
-        message = self.package_encoder.encode(package)
-        self.peers.send(peer_identity, message)
+    def send_package(self, package):
+        message = self._encode_package(package)
+        self.peers.send(message)
+
+    def _encode_package(self, package):
+        return self.message_factory(
+            self.package_encoder.encode(package),
+            package.get_headers()[PACKAGE.HEADER.PEER],
+            package.get_headers()[PACKAGE.HEADER.HOPS]
+        )
 
 
 class ServerChannel(BaseChannel):

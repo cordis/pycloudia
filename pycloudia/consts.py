@@ -12,6 +12,8 @@ class PACKAGE(object):
         class FORMAT(object):
             DELIMITER = ':'
 
+        PEER = 'X-Peer-Identity'
+        HOPS = 'X-Hops-Identity'
         REQUEST_ID = 'X-Request-Id'
         WORKER_ID = 'X-Worker-Id'
         TIMESTAMP = 'X-Timestamp'

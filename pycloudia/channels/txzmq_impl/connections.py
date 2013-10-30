@@ -14,11 +14,11 @@ __all__ = [
 
 class BaseSocketConnection(ZmqConnection):
     def __init__(self, callback, *args, **kwargs):
-        self.process_message = staticmethod(callback)
+        self.callback = staticmethod(callback)
         super(BaseSocketConnection, self).__init__(*args, **kwargs)
 
     def messageReceived(self, message_part_list):
-        self.process_message(message_part_list)
+        self.callback(message_part_list)
 
 
 class DealerSocketConnection(BaseSocketConnection):
