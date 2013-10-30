@@ -1,20 +1,9 @@
 from collections import deque
-from zope.interface import implements
 
 from pycloudia.consts import PACKAGE
-from pycloudia.uitls.defer import deferrable, inline_callbacks, maybe_deferred, Deferred
-from pycloudia.channels.interfaces import *
+from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred
 from pycloudia.channels.responder import ResponderNotFoundError
 from pycloudia.channels.messages import ChannelMessage
-
-
-class BaseChannel(object):
-    package_decoder = None
-    package_encoder = None
-
-    def __init__(self, identity, handler):
-        self.identity = identity
-        self.handler = handler
 
 
 class RouterPeers(object):
@@ -27,6 +16,14 @@ class RouterPeers(object):
 
     def send(self, message):
         self.socket.send(message)
+
+    def start(self):
+        self.socket.start(self._on_message_received)
+
+    @inline_callbacks
+    def _on_message_received(self, message):
+        for callback in self.callback_list:
+            yield callback(message)
 
 
 class DealerPeers(object):
@@ -41,12 +38,20 @@ class DealerPeers(object):
         self.sockets_map[message.peer].send(message)
 
 
-class BiDirectionalChannel(BaseChannel):
+class BiDirectionalChannel(object):
+    package_decoder = None
+    package_encoder = None
     responder = None
-    message_factory = ChannelMessage
 
-    def __init__(self, identity, handler, peers):
-        super(BiDirectionalChannel, self).__init__(identity, handler)
+    message_factory = ChannelMessage
+    responder_header_list = [
+        PACKAGE.HEADER.PEER,
+        PACKAGE.HEADER.HOPS,
+        PACKAGE.HEADER.REQUEST_ID,
+    ]
+
+    def __init__(self, handler, peers):
+        self.handler = handler
         self.peers = peers
         self.peers.add_callback(self._on_message_received)
 
@@ -59,13 +64,12 @@ class BiDirectionalChannel(BaseChannel):
         request_id = package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
         return self.responder.listen(request_id, Deferred())
 
-    @inline_callbacks
     def _on_message_received(self, message):
         incoming_package = self._decode_package(message)
         try:
             self._process_response(incoming_package)
         except (KeyError, ResponderNotFoundError):
-            yield self._process_request(incoming_package)
+            self._process_request(incoming_package)
 
     def _decode_package(self, message):
         package = self.package_decoder.decode(message)
@@ -81,7 +85,13 @@ class BiDirectionalChannel(BaseChannel):
     def _process_request(self, incoming_package):
         outgoing_package = yield maybe_deferred(self.handler.consume, incoming_package)
         if outgoing_package is not None:
+            outgoing_package = self._copy_headers_from_request_to_response(incoming_package, outgoing_package)
             self.send_package(outgoing_package)
+
+    def _copy_headers_from_request_to_response(self, incoming_package, outgoing_package):
+        for header_name in self.responder_header_list:
+            outgoing_package.get_headers()[header_name] = incoming_package.get_headers()[header_name]
+        return outgoing_package
 
     def send_package(self, package):
         message = self._encode_package(package)
@@ -93,76 +103,3 @@ class BiDirectionalChannel(BaseChannel):
             package.get_headers()[PACKAGE.HEADER.PEER],
             package.get_headers()[PACKAGE.HEADER.HOPS]
         )
-
-
-class ServerChannel(BaseChannel):
-    socket = None
-
-    def set_socket(self, socket):
-        if self.socket is not None:
-            self.socket.stop()
-        self.socket = socket
-        self.socket.run(self._on_message_received)
-
-
-class ClientChannel(BaseChannel):
-    sockets = SocketsRegistry()
-
-    def update_sockets(self, socket_list):
-        for socket in self.sockets.get_removed(socket_list):
-            socket.stop()
-        for socket in self.sockets.get_created(socket_list):
-            socket.run(self._on_message_received)
-        self.sockets = SocketsRegistry(socket_list)
-
-    @inline_callbacks
-    def _on_message_received(self, message):
-        package = self.package_decoder.decode(message)
-        yield maybe_deferred(self.handler.consume, package)
-
-    @deferrable
-    def request_socket(self, package, router):
-        sender = router.choose(self.sockets, package)
-        return sender.send()
-
-
-class Channel(object):
-    implements(ConsumeInterface, ProduceInterface, RouteInterface, BroadcastInterface)
-
-
-
-
-
-
-
-    @deferrable
-    def produce(self, package):
-
-        socket = self.socket.get_sender_by_name(sender)
-        package = self.package_encoder.encode(package)
-        return socket.request(package)
-
-    @deferrable
-    def broadcast(self, package):
-        sender = self.socket.get_broadcast_sender_name()
-        socket = self.socket.get_sender_by_name(sender)
-        message = self.package_encoder.encode(package)
-        return socket.publish(message)
-
-
-class SocketsRegistry(object):
-    def __init__(self, socket_list=None):
-        self.socket_list = socket_list or []
-        self.socket_map = dict([(socket.guid, socket) for socket in socket_list])
-
-    def get_removed(self, socket_list):
-        return set(self.socket_list) - set(socket_list)
-
-    def get_created(self, socket_list):
-        return set(socket_list) - set(self.socket_list)
-
-    def get_by_guid(self, guid):
-        return self.socket_map[guid]
-
-    def __iter__(self):
-        return iter(self.socket_list)
