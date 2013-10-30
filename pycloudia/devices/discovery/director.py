@@ -2,6 +2,7 @@ from pycloudia.reactor.interfaces import ReactorInterface
 from pycloudia.uitls.defer import inline_callbacks, Deferred, deferrable
 from pycloudia.channels import METHOD
 from pycloudia.channels.txzmq_impl import SocketFactory
+from pycloudia.channels.channels import RouterPeers, BiDirectionalChannel
 from pycloudia.devices.consts import DEVICE
 from pycloudia.devices.discovery.udp import DiscoveryUdpProtocol
 
@@ -27,10 +28,14 @@ class DiscoveryDirector(object):
         yield self._start_multicast()
         yield self._start_heartbeat()
 
+    @deferrable
     def _start_router(self):
-        self.router = self.zmq_socket_factory(METHOD.ROUTER, self.address, identity=self.identity)
-        self.router.start(self._process_router_message)
+        router_peers = RouterPeers()
+        self.router = BiDirectionalChannel(self._process_router_package, router_peers)
+        router_socket = self.zmq_socket_factory(METHOD.ROUTER, self.address, identity=self.identity)
+        router_peers.set_socket(router_socket)
 
+    @deferrable
     def _start_multicast(self):
         deferred = Deferred()
         self.multicast = self.multicast_factory(self._process_multicast_message)
@@ -52,9 +57,8 @@ class DiscoveryDirector(object):
     def _send_heartbeat(self):
         self.multicast.send('BEACON')
 
-    def _process_router_message(self, message):
-        hops = message.hops
-        peer = message.peer
+    def _process_router_package(self, package):
+        pass
 
     def _process_multicast_message(self, message, host):
         pass

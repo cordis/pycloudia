@@ -2,23 +2,24 @@ from collections import deque
 
 from pycloudia.consts import PACKAGE
 from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred
-from pycloudia.channels.responder import ResponderNotFoundError
 from pycloudia.channels.messages import ChannelMessage
+from pycloudia.channels.responder import ResponderNotFoundError
 
 
 class RouterPeers(object):
-    def __init__(self, socket):
-        self.socket = socket
+    def __init__(self):
+        self.socket = None
         self.callback_list = deque()
+
+    def set_socket(self, socket):
+        self.socket = socket
+        self.socket.start(self._on_message_received)
 
     def add_callback(self, callback):
         self.callback_list.append(callback)
 
     def send(self, message):
         self.socket.send(message)
-
-    def start(self):
-        self.socket.start(self._on_message_received)
 
     @inline_callbacks
     def _on_message_received(self, message):
@@ -31,11 +32,20 @@ class DealerPeers(object):
         self.sockets_map = {}
         self.callback_list = deque()
 
+    def add_socket(self, socket):
+        self.sockets_map[socket.identity] = socket
+        socket.start(self._on_message_received)
+
     def add_callback(self, callback):
         self.callback_list.append(callback)
 
     def send(self, message):
         self.sockets_map[message.peer].send(message)
+
+    @inline_callbacks
+    def _on_message_received(self, message):
+        for callback in self.callback_list:
+            yield callback(message)
 
 
 class BiDirectionalChannel(object):
@@ -50,8 +60,8 @@ class BiDirectionalChannel(object):
         PACKAGE.HEADER.REQUEST_ID,
     ]
 
-    def __init__(self, handler, peers):
-        self.handler = handler
+    def __init__(self, callback, peers):
+        self.callback = callback
         self.peers = peers
         self.peers.add_callback(self._on_message_received)
 
@@ -83,7 +93,7 @@ class BiDirectionalChannel(object):
 
     @inline_callbacks
     def _process_request(self, incoming_package):
-        outgoing_package = yield maybe_deferred(self.handler.consume, incoming_package)
+        outgoing_package = yield maybe_deferred(self.callback, incoming_package)
         if outgoing_package is not None:
             outgoing_package = self._copy_headers_from_request_to_response(incoming_package, outgoing_package)
             self.send_package(outgoing_package)
