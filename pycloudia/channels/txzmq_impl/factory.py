@@ -32,6 +32,9 @@ class SocketFactory(object):
         address = self.create_zmq_address(address)
         return socket_cls(self.zmq_factory, address, *args, **kwargs)
 
+    def create_router(self, address):
+        return self(METHOD.ROUTER, address)
+
     @staticmethod
     def create_zmq_address(address, protocol=DEFAULT_PROTOCOL):
         return '%s://%s:%d' % protocol, address.host, address.port

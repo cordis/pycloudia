@@ -1,27 +1,34 @@
 from twisted.internet.protocol import DatagramProtocol
 
-from pycloudia.uitls.defer import inline_callbacks, maybe_deferred
+from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.uitls.defer import inline_callbacks
 from pycloudia.uitls.net import Address
-from pycloudia.devices.consts import DEVICE
 
 
 class DiscoveryUdpProtocol(DatagramProtocol):
-    address = Address(DEVICE.UDP.HOST, DEVICE.UDP.PORT)
+    reactor = ReactorInterface()
+    address_factory = Address
 
-    def __init__(self, callback):
-        self.callback = callback
-        self.start_callback = lambda _: None
+    def __init__(self, host, port, interface=''):
+        self.address = self.address_factory(host, port)
+        self.interface = interface
+        self.signal_message = Signal()
 
-    def set_start_callback(self, func):
-        self.start_callback = lambda _: func()
+    def start(self):
+        self.reactor.call_feature(
+            'listenMulticast',
+            self.address.port,
+            self,
+            self.interface,
+            listenMultiple=True
+        )
 
     @inline_callbacks
     def startProtocol(self):
-        yield self.transport.joinGroup(self.address.host)
-        yield maybe_deferred(self.start_callback)
+        yield self.transport.joinGroup(self.host)
 
     def send(self, message):
         self.transport.write(message, self.address)
 
-    def datagramReceived(self, data, address):
-        self.callback(data, Address(*address))
+    def datagramReceived(self, data, address_tuple):
+        self.signal_message.emit(data, self.address_factory(*address_tuple))

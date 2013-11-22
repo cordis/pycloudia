@@ -25,16 +25,12 @@ class BaseSocket(object):
         self.factory = zmq_factory
         self.endpoint = ZmqEndpoint(self.endpoint_type, address),
         self.identity = identity
-        self.callback = None
         self.connection = None
+        self.signal_message = Signal()
         self.message_strategy = self.message_strategy_factory(self)
 
-    def _generate_identity(self):
-        return ':'.join(self.endpoint)
-
-    def start(self, callback):
+    def start(self):
         assert self.connection is None
-        self.callback = callback
         self.connection = self._create_connection()
 
     def _create_connection(self):
@@ -57,9 +53,9 @@ class DealerSocket(BaseSocket):
     connection_factory = DealerSocketConnection
     message_strategy_factory = DealerMessageStrategy
 
-    def start(self, callback):
+    def start(self):
         assert self.identity is not None
-        super(DealerSocket, self).start(callback)
+        super(DealerSocket, self).start()
 
 
 class RouterSocket(BaseSocket):
