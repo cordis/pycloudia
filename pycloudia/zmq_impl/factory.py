@@ -46,8 +46,8 @@ class SocketFactory(object):
     def create_blow_socket(self):
         return BlowSocket.create_instance(self.zmq_context, self.io_loop)
 
-    def create_pub_socket(self):
-        return PubSocket.create_instance(self.zmq_context, self.io_loop)
-
     def create_sub_socket(self):
         return SubSocket.create_instance(self.zmq_context, self.io_loop)
+
+    def create_pub_socket(self):
+        return PubSocket.create_instance(self.zmq_context, self.io_loop)

@@ -3,7 +3,19 @@ from zmq.sugar import Socket as ZmqSocket
 from zmq.core import constants as zmq_constants
 
 from pysigslot import Signal
-from pycloudia.zmq_impl.strategies import ConnectStartStrategy, BindStartStrategy
+from pycloudia.zmq_impl.strategies import *
+
+
+__all__ = [
+    'RouterSocket',
+    'DealerSocket',
+    'SinkSocket',
+    'PushSocket',
+    'PullSocket',
+    'BlowSocket',
+    'SubSocket',
+    'PubSocket',
+]
 
 
 class BaseSocket(object):
@@ -11,6 +23,7 @@ class BaseSocket(object):
     zmq_stream_factory = ZmqStream
     zmq_socket_type = NotImplemented
     zmq_stream_start_strategy = NotImplemented
+    zmq_stream_message_strategy = NotImplemented
 
     @classmethod
     def create_instance(cls, zmq_context, io_loop, *args, **kwargs):
@@ -26,12 +39,18 @@ class BaseSocket(object):
         return zmq_stream
 
     def start(self, host, port):
-        self.zmq_stream.on_recv(self.message_received.emit)
+        self.zmq_stream.on_recv(self.on_message_received)
         self.zmq_stream_start_strategy.start(self, host, port)
 
     def start_on_random_port(self, host, min_port=49152, max_port=65536, max_tries=100):
-        self.zmq_stream.on_recv(self.message_received.emit)
+        self.zmq_stream.on_recv(self.on_message_received)
         self.zmq_stream_start_strategy.start_on_random_port(host, min_port, max_port, max_tries)
+
+    def on_message_received(self, message_list):
+        self.zmq_stream_message_strategy.on_message_received(self, message_list)
+
+    def send(self, message):
+        self.zmq_stream_message_strategy.send(self, message)
 
     def close(self):
         self.zmq_stream.close()
@@ -52,11 +71,13 @@ class BaseSocket(object):
 class RouterSocket(BaseSocket):
     zmq_socket_type = zmq_constants.ROUTER
     zmq_stream_start_strategy = BindStartStrategy()
+    zmq_stream_message_strategy = RouterMessageStrategy()
 
 
 class DealerSocket(BaseSocket):
     zmq_socket_type = zmq_constants.DEALER
     zmq_stream_start_strategy = ConnectStartStrategy()
+    zmq_stream_message_strategy = DealerMessageStrategy()
 
     def __init__(self, zmq_context, io_loop, identity):
         assert identity is not None
@@ -67,28 +88,34 @@ class DealerSocket(BaseSocket):
 class SinkSocket(BaseSocket):
     zmq_socket_type = zmq_constants.PULL
     zmq_stream_start_strategy = BindStartStrategy()
+    zmq_stream_message_strategy = SimpleMessageStrategy()
 
 
 class PushSocket(BaseSocket):
     zmq_socket_type = zmq_constants.PUSH
     zmq_stream_start_strategy = ConnectStartStrategy()
+    zmq_stream_message_strategy = SimpleMessageStrategy()
 
 
 class PullSocket(BaseSocket):
     zmq_socket_type = zmq_constants.PULL
     zmq_stream_start_strategy = ConnectStartStrategy()
+    zmq_stream_message_strategy = SimpleMessageStrategy()
 
 
 class BlowSocket(BaseSocket):
     zmq_socket_type = zmq_constants.PUSH
     zmq_stream_start_strategy = BindStartStrategy()
-
-
-class PubSocket(BaseSocket):
-    zmq_socket_type = zmq_constants.PUB
-    zmq_stream_start_strategy = BindStartStrategy()
+    zmq_stream_message_strategy = SimpleMessageStrategy()
 
 
 class SubSocket(BaseSocket):
     zmq_socket_type = zmq_constants.SUB
     zmq_stream_start_strategy = ConnectStartStrategy()
+    zmq_stream_message_strategy = SimpleMessageStrategy()
+
+
+class PubSocket(BaseSocket):
+    zmq_socket_type = zmq_constants.PUB
+    zmq_stream_start_strategy = BindStartStrategy()
+    zmq_stream_message_strategy = SimpleMessageStrategy()
