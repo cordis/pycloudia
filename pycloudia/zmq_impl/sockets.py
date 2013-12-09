@@ -44,7 +44,7 @@ class BaseSocket(object):
 
     def start_on_random_port(self, host, min_port=49152, max_port=65536, max_tries=100):
         self.zmq_stream.on_recv(self.on_message_received)
-        self.zmq_stream_start_strategy.start_on_random_port(host, min_port, max_port, max_tries)
+        return self.zmq_stream_start_strategy.start_on_random_port(host, min_port, max_port, max_tries)
 
     def on_message_received(self, message_list):
         self.zmq_stream_message_strategy.on_message_received(self, message_list)

@@ -49,7 +49,7 @@ class ReactorInterface(Interface):
         :type name: C{str}
         :param *args: Passed to feature
         :param **kwargs: Passed to feature
-        :rtype: C{object} or C{None}
+        :rtype: C{object} or None
         """
 
 

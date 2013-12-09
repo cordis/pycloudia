@@ -4,3 +4,4 @@ class DEVICE(object):
         PORT = 5000
         TTL = 5
         HEARTBEAT_INTERVAL = 2
+        PEER_EXPIRED = 5

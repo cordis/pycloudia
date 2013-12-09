@@ -8,9 +8,10 @@ class SocketFactory(object):
     io_loop = None
 
     @classmethod
-    def create_instance(cls, io_threads=1):
+    def create_instance(cls, io_loop, io_threads=1):
         instance = cls()
         instance.zmq_context = ZmqContext(io_threads)
+        instance.io_loop = io_loop
         return instance
 
     def __init__(self):

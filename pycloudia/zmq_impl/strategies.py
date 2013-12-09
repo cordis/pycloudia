@@ -46,7 +46,7 @@ class BindStartStrategy(BaseStartStrategy):
 
     def start_tcp_on_random_port(self, socket, host, **kwargs):
         address = self._create_tcp_host_address(host)
-        socket.bind_to_random_port(address, **kwargs)
+        return socket.bind_to_random_port(address, **kwargs)
 
 
 class BaseMessageStrategy(object):

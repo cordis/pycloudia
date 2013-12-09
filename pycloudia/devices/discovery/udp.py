@@ -1,18 +1,19 @@
 from twisted.internet.protocol import DatagramProtocol
 
+from pysigslot import Signal
 from pycloudia.reactor.interfaces import ReactorInterface
 from pycloudia.uitls.defer import inline_callbacks
 from pycloudia.uitls.net import Address
 
 
-class DiscoveryUdpProtocol(DatagramProtocol):
+class UdpMulticastProtocol(DatagramProtocol):
     reactor = ReactorInterface()
     address_factory = Address
 
     def __init__(self, host, port, interface=''):
         self.address = self.address_factory(host, port)
         self.interface = interface
-        self.signal_message = Signal()
+        self.message_received = Signal()
 
     def start(self):
         self.reactor.call_feature(
@@ -31,4 +32,4 @@ class DiscoveryUdpProtocol(DatagramProtocol):
         self.transport.write(message, self.address)
 
     def datagramReceived(self, data, address_tuple):
-        self.signal_message.emit(data, self.address_factory(*address_tuple))
+        self.message_received.emit(data, self.address_factory(*address_tuple))
