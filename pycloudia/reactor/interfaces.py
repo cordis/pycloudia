@@ -60,5 +60,8 @@ class LoopingCallInterface(Interface):
         :type now: bool
         """
 
-    def stop(self):
+    def stop():
+        pass
+
+    def reset():
         pass

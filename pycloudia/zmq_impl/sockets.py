@@ -50,7 +50,10 @@ class BaseSocket(object):
         self.zmq_stream_message_strategy.on_message_received(self, message_list)
 
     def send(self, message):
-        self.zmq_stream_message_strategy.send(self, message)
+        self.zmq_stream_message_strategy.send_message(self, message)
+
+    def encode_message_str(self, message_str):
+        return self.zmq_stream_message_strategy.message_factory(message_str)
 
     def close(self):
         self.zmq_stream.close()

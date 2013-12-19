@@ -11,8 +11,7 @@ class UdpMulticastProtocol(DatagramProtocol):
     address_factory = Address
 
     def __init__(self, host, port, interface=''):
-        self.address = self.address_factory(host, port)
-        self.interface = interface
+        self.address = self.address_factory(host, port, interface)
         self.message_received = Signal()
 
     def start(self):
@@ -20,7 +19,7 @@ class UdpMulticastProtocol(DatagramProtocol):
             'listenMulticast',
             self.address.port,
             self,
-            self.interface,
+            self.address.interface,
             listenMultiple=True
         )
 
