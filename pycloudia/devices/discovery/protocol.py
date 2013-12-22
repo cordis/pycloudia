@@ -14,6 +14,9 @@ class BaseBeacon(object):
     def __str__(self):
         raise NotImplementedError()
 
+    def __repr__(self):
+        return ' '.join([type(self).__name__, str(self)])
+
 
 class UdpBeacon(BaseBeacon):
     def __str__(self):
@@ -46,6 +49,7 @@ class DiscoveryProtocol(object):
         return factory(self.prefix, host, port, identity)
 
     def parse_udp_beacon_message(self, message, host):
+        print message, host
         _, port, identity = message.split(':')
         return self._create_beacon(self.udp_beacon_cls, host, port, identity)
 

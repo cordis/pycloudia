@@ -6,10 +6,9 @@ from pycloudia.reactor.interfaces import ReactorInterface
 class UdpMulticast(object):
     reactor = ReactorInterface
 
-    def __init__(self, host, port, bind=''):
+    def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.bind = bind
         self.adapter = self._create_protocol_adapter()
         self.message_received = Signal()
 
@@ -41,7 +40,7 @@ class UdpMulticast(object):
             'listenMulticast',
             self.port,
             self.adapter,
-            self.bind,
+            self.host,
             listenMultiple=True
         )
 

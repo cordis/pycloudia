@@ -1,9 +1,9 @@
-from pycloudia.sockets.zmq_impl.messages import UnicodeMessage
+from pycloudia.sockets.zmq_impl.messages import Message
 
 
 __all__ = [
-    'ConnectStartStrategy',
     'BindStartStrategy',
+    'ConnectStartStrategy',
     'SimpleMessageStrategy',
     'RouterMessageStrategy',
     'DealerMessageStrategy',
@@ -44,7 +44,7 @@ class BindStartStrategy(BaseStartStrategy):
 
 
 class BaseMessageStrategy(object):
-    message_factory = UnicodeMessage
+    message_factory = Message
 
     def on_message_received(self, socket, message_list):
         raise NotImplementedError()
@@ -70,7 +70,7 @@ class RouterMessageStrategy(BaseMessageStrategy):
         socket.message_received.emit(message)
 
     def send_message(self, socket, message):
-        socket.zmq_stream.send([message.peer] + message.hops + [message])
+        socket.zmq_stream.send_multipart([message.peer] + message.hops + [message])
 
 
 class DealerMessageStrategy(BaseMessageStrategy):
@@ -80,4 +80,4 @@ class DealerMessageStrategy(BaseMessageStrategy):
         socket.message_received.emit(message)
 
     def send_message(self, socket, message):
-        socket.zmq_stream.send(message.hops + [message])
+        socket.zmq_stream.send_multipart(message.hops + [message])

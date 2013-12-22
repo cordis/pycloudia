@@ -3,7 +3,6 @@ from functools import partial
 from pysigslot import Signal
 
 from pycloudia.reactor.interfaces import ReactorInterface
-from pycloudia.devices.consts import DEVICE
 
 
 class Peer(object):
@@ -73,6 +72,7 @@ class Agent(object):
             self._process_beacon(beacon)
 
     def _process_beacon(self, beacon):
+        print repr(beacon)
         if beacon.identity != self.identity:
             peer = self._get_or_create_peer(beacon.host, beacon.port, beacon.identity)
             self._reset_peer_heartbeat(peer)
