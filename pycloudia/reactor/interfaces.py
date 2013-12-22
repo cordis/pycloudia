@@ -16,9 +16,6 @@ class ReactorInterface(Interface):
         :param **kwargs: Passed to C{func}
         """
 
-    def run():
-        pass
-
     def call(func, *args, **kwargs):
         """
         :type func: C{callable}

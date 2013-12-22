@@ -4,9 +4,6 @@ from pysigslot import Signal
 
 from pycloudia.reactor.interfaces import ReactorInterface
 from pycloudia.devices.consts import DEVICE
-from pycloudia.devices.discovery.protocol import DiscoveryProtocol
-from pycloudia.devices.discovery.udp import UdpMulticastProtocol
-from pycloudia.zmq_impl.factory import SocketFactory
 
 
 class Peer(object):
@@ -18,15 +15,15 @@ class Peer(object):
 
 
 class Agent(object):
-    reactor = ReactorInterface()
+    reactor = ReactorInterface
     protocol = None
     broadcast = None
     zmq_socket_factory = None
     peer_factory = None
 
-    def __init__(self, host, identity):
-        self.host = host
+    def __init__(self, identity, config):
         self.identity = identity
+        self.config = config
 
         self.dealer_created = Signal()
         self.dealer_deleted = Signal()
@@ -47,11 +44,11 @@ class Agent(object):
     def _start_router(self):
         self.router = self.zmq_socket_factory.create_router_socket()
         self.router.message_received.connect(self._process_router_message)
-        return self.router.start_on_random_port(self.host)
+        return self.router.start_on_random_port(self.config.host, self.config.min_port, self.config.max_port)
 
     def _create_beacons(self, port):
-        self.udp_beacon_message = self.protocol.create_udp_beacon_message(self.host, port, self.identity)
-        self.zmq_beacon_message = self.protocol.create_zmq_beacon_message(self.host, port, self.identity)
+        self.udp_beacon_message = self.protocol.create_udp_beacon_message(self.config.host, port, self.identity)
+        self.zmq_beacon_message = self.protocol.create_zmq_beacon_message(self.config.host, port, self.identity)
 
     def _start_broadcast(self):
         self.broadcast.message_received.connect(self._process_broadcast_message)
@@ -76,8 +73,9 @@ class Agent(object):
             self._process_beacon(beacon)
 
     def _process_beacon(self, beacon):
-        peer = self._get_or_create_peer(beacon.host, beacon.port, beacon.identity)
-        self._reset_peer_heartbeat(peer)
+        if beacon.identity != self.identity:
+            peer = self._get_or_create_peer(beacon.host, beacon.port, beacon.identity)
+            self._reset_peer_heartbeat(peer)
 
     def _get_or_create_peer(self, host, port, identity):
         try:
@@ -113,29 +111,26 @@ class Agent(object):
 
 
 class AgentFactory(object):
-    udp_host = DEVICE.UDP.HOST
-    udp_port = DEVICE.UDP.PORT
-
-    reactor = ReactorInterface()
-    broadcast_factory = UdpMulticastProtocol
-
-    protocol = DiscoveryProtocol()
-    zmq_socket_factory = SocketFactory()
+    reactor = ReactorInterface
+    udp_host = None
+    udp_port = None
+    protocol = None
+    broadcast_factory = None
     peer_factory = Peer
 
     def __init__(self, zmq_socket_factory):
         self.zmq_socket_factory = zmq_socket_factory
 
-    def __call__(self, identity, host, interface=''):
-        instance = Agent(host, identity)
+    def __call__(self, identity, config):
+        instance = Agent(identity, config)
         instance.reactor = self.reactor
         instance.protocol = self.protocol
         instance.zmq_socket_factory = self.zmq_socket_factory
-        instance.broadcast = self._create_broadcast(interface)
+        instance.broadcast = self._create_broadcast()
         instance.peer_factory = self.peer_factory
         return instance
 
-    def _create_broadcast(self, interface):
-        instance = self.broadcast_factory(self.udp_host, self.udp_port, interface)
+    def _create_broadcast(self):
+        instance = self.broadcast_factory()
         instance.reactor = self.reactor
         return instance

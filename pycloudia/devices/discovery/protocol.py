@@ -4,6 +4,27 @@ from pycloudia.devices.consts import DEVICE
 __all__ = ['UdpBeacon', 'ZmqBeacon', 'DiscoveryProtocol']
 
 
+class BaseBeacon(object):
+    def __init__(self, prefix, host, port, identity):
+        self.prefix = prefix
+        self.host = host
+        self.port = port
+        self.identity = identity
+
+    def __str__(self):
+        raise NotImplementedError()
+
+
+class UdpBeacon(BaseBeacon):
+    def __str__(self):
+        return ':'.join([self.prefix, str(self.port), self.identity])
+
+
+class ZmqBeacon(BaseBeacon):
+    def __str__(self):
+        return ':'.join([self.prefix, self.host, str(self.port)])
+
+
 class DiscoveryProtocol(object):
     prefix = DEVICE.DISCOVERY.PROTOCOL
     udp_heartbeat_interval = DEVICE.DISCOVERY.HEARTBEAT_INTERVAL
@@ -31,24 +52,3 @@ class DiscoveryProtocol(object):
     def parse_zmq_beacon_message(self, message, identity):
         _, host, port = message.split(':')
         return self._create_beacon(self.udp_beacon_cls, host, port, identity)
-
-
-class BaseBeacon(object):
-    def __init__(self, prefix, host, port, identity):
-        self.prefix = prefix
-        self.host = host
-        self.port = port
-        self.identity = identity
-
-    def __str__(self):
-        raise NotImplementedError()
-
-
-class UdpBeacon(BaseBeacon):
-    def __str__(self):
-        return ':'.join([self.prefix, self.port, self.identity])
-
-
-class ZmqBeacon(BaseBeacon):
-    def __str__(self):
-        return ':'.join([self.prefix, self.host, self.port])

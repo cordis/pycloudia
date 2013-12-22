@@ -37,9 +37,6 @@ class ReactorAdapter(object):
         """
         self.subject.callWhenRunning(func, *args, **kwargs)
 
-    def run(self):
-        self.subject.run()
-
     def call(self, func, *args, **kwargs):
         """
         :param func: C{callable}

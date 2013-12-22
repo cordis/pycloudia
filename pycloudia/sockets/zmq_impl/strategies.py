@@ -1,4 +1,4 @@
-from pycloudia.zmq_impl.messages import UnicodeMessage
+from pycloudia.sockets.zmq_impl.messages import UnicodeMessage
 
 
 __all__ = [
@@ -17,13 +17,7 @@ class BaseStartStrategy(object):
     def start_tcp(self, socket, host, port):
         raise NotImplementedError()
 
-    def start_tcp_on_random_port(self, socket, host):
-        raise NotImplementedError()
-
-    def start_tcp_on_interface(self, socket, interface, port):
-        raise NotImplementedError()
-
-    def start_tcp_on_interface_and_random_port(self, socket, interface):
+    def start_tcp_on_random_port(self, socket, host, *args, **kwargs):
         raise NotImplementedError()
 
     def _create_tcp_host_address(self, host):
@@ -44,9 +38,9 @@ class BindStartStrategy(BaseStartStrategy):
         address = self._create_tcp_host_port_address(host, port)
         socket.bind(address)
 
-    def start_tcp_on_random_port(self, socket, host, **kwargs):
+    def start_tcp_on_random_port(self, socket, host, *args, **kwargs):
         address = self._create_tcp_host_address(host)
-        return socket.bind_to_random_port(address, **kwargs)
+        return socket.bind_to_random_port(address, *args, **kwargs)
 
 
 class BaseMessageStrategy(object):

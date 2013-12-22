@@ -10,12 +10,7 @@ __all__ = ['Address', 'get_ip_address']
 SIOCGIFADDR = 0x8915
 
 
-BaseAddress = collections.namedtuple('BaseAddress', 'host port interface')
-
-
-class Address(BaseAddress):
-    def __init__(self, host, port, interface=''):
-        super(Address, self).__init__(host, port, interface)
+Address = collections.namedtuple('Address', 'host port')
 
 
 def get_ip_address(interface_name):

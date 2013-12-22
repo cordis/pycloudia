@@ -10,3 +10,4 @@ class AbstractRegistry(object):
         if item is None:
             item = self.default
         return self.instances_map[item]
+
