@@ -1,6 +1,6 @@
 from zmq import Context as ZmqContext
 
-from pycloudia.zmq_impl.sockets import *
+from pycloudia.sockets.zmq_impl.sockets import *
 
 
 class SocketFactory(object):
