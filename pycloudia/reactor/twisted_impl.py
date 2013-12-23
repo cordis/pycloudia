@@ -21,6 +21,12 @@ class ReactorAdapter(object):
         """
         self.subject = subject
 
+    def time(self):
+        """
+        :rtype: C{int}
+        """
+        return self.subject.seconds()
+
     def register_for_shutdown(self, func, *args, **kwargs):
         """
         :param func: C{callable}

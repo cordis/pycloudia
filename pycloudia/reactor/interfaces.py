@@ -2,6 +2,11 @@ from zope.interface import Interface
 
 
 class ReactorInterface(Interface):
+    def time():
+        """
+        :rtype: C{int}
+        """
+
     def register_for_shutdown(func, *args, **kwargs):
         """
         :type func: C{callable}

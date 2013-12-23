@@ -17,9 +17,6 @@ class IStartStreamStrategy(Interface):
 
 
 class IReadStreamMessageStrategy(Interface):
-    def message_factory():
-        pass
-
     def read_message(stream, message_list):
         pass
 

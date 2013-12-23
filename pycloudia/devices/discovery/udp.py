@@ -44,7 +44,7 @@ class UdpMulticast(object):
             listenMultiple=True
         )
 
-    def send(self, message):
+    def send_message(self, message):
         self.adapter.send(message)
 
 

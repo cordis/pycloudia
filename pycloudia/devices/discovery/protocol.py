@@ -15,7 +15,7 @@ class BaseBeacon(object):
         raise NotImplementedError()
 
     def __repr__(self):
-        return ' '.join([type(self).__name__, str(self)])
+        return ' '.join([type(self).__name__, self.host, str(self.port), self.identity])
 
 
 class UdpBeacon(BaseBeacon):
@@ -30,8 +30,8 @@ class ZmqBeacon(BaseBeacon):
 
 class DiscoveryProtocol(object):
     prefix = DEVICE.DISCOVERY.PROTOCOL
-    udp_heartbeat_interval = DEVICE.DISCOVERY.HEARTBEAT_INTERVAL
-    zmq_heartbeat_interval = DEVICE.DISCOVERY.TTL
+    udp_heartbeat_interval = DEVICE.DISCOVERY.UDP_HEARTBEAT_INTERVAL
+    zmq_heartbeat_interval = DEVICE.DISCOVERY.ZMQ_HEARTBEAT_INTERVAL
 
     udp_beacon_cls = UdpBeacon
     zmq_beacon_cls = ZmqBeacon

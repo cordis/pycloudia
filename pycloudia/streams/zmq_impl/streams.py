@@ -4,6 +4,7 @@ from zmq.sugar import constants as zmq_constants
 
 from pysigslot import Signal
 
+from pycloudia.streams.zmq_impl.messages import Message
 from pycloudia.streams.zmq_impl.strategies import *
 
 
@@ -20,6 +21,7 @@ __all__ = [
 
 
 class BaseStream(object):
+    zmq_message_factory = Message
     zmq_socket_factory = ZmqSocket
     zmq_stream_factory = ZmqStream
     zmq_socket_type = NotImplemented
@@ -61,7 +63,7 @@ class BaseStream(object):
         self.zmq_stream_send_strategy.send_message(self, message)
 
     def encode_message_str(self, message_str):
-        return self.zmq_stream_read_strategy.message_factory(message_str)
+        return self.zmq_message_factory(message_str)
 
     def close(self):
         self.zmq_stream.close()
@@ -113,16 +115,12 @@ class PushStream(BaseStream):
     zmq_socket_type = zmq_constants.PUSH
     zmq_stream_start_strategy = ConnectStartStrategy()
     zmq_stream_read_strategy = RejectReadMessageStrategy()
-    zmq_stream_send_strategy = SimpleSendMessageStrategy()
+    zmq_stream_send_strategy = SignedSendMessageStrategy()
 
     def __init__(self, zmq_context, zmq_io_loop, identity):
         assert identity is not None
         super(PushStream, self).__init__(zmq_context, zmq_io_loop)
-        self.zmq_stream.socket.identity = identity
-
-    @property
-    def identity(self):
-        return self.zmq_stream.socket.identity
+        self.identity = identity
 
 
 class PullStream(BaseStream):

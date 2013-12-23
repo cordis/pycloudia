@@ -1,5 +1,5 @@
 class DEVICE(object):
     class DISCOVERY(object):
-        TTL = 5
         PROTOCOL = 'CLD'
-        HEARTBEAT_INTERVAL = 2
+        ZMQ_HEARTBEAT_INTERVAL = 5
+        UDP_HEARTBEAT_INTERVAL = 2

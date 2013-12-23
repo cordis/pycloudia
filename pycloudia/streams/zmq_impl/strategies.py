@@ -53,40 +53,34 @@ class BindStartStrategy(BaseStartStrategy):
 
 @implementer(IReadStreamMessageStrategy)
 class RejectReadMessageStrategy(object):
-    def message_factory(self):
-        raise NotImplementedError('Unable to provide message factory for write-only stream')
-
     def read_message(self, stream, message_list):
         raise NotImplementedError('Unable to read write-only stream message')
 
 
 @implementer(IReadStreamMessageStrategy)
 class SimpleReadMessageStrategy(object):
-    message_factory = Message
-
-    def read_message(self, stream, message_list):
+    @staticmethod
+    def read_message(stream, message_list):
         assert len(message_list) == 1
-        message = self.message_factory(message_list[0])
+        message = stream.zmq_message_factory(message_list[0])
         stream.message_received.emit(message)
 
 
 @implementer(IReadStreamMessageStrategy)
 class SignedReadMessageStrategy(object):
-    message_factory = Message
-
-    def read_message(self, stream, message_list):
+    @staticmethod
+    def read_message(stream, message_list):
         assert len(message_list) > 1
-        message = self.message_factory(message_list[-1], peer=message_list[0], hops=message_list[1:-1])
+        message = stream.zmq_message_factory(message_list[-1], peer=message_list[0], hops=message_list[1:-1])
         stream.message_received.emit(message)
 
 
 @implementer(IReadStreamMessageStrategy)
 class DealerReadMessageStrategy(object):
-    message_factory = Message
-
-    def read_message(self, stream, message_list):
+    @staticmethod
+    def read_message(stream, message_list):
         assert len(message_list) > 0
-        message = self.message_factory(message_list[-1], peer=stream.identity, hops=message_list[:-1])
+        message = stream.zmq_message_factory(message_list[-1], peer=stream.identity, hops=message_list[:-1])
         stream.message_received.emit(message)
 
 
@@ -101,7 +95,7 @@ class RejectSendMessageStrategy(object):
 class SimpleSendMessageStrategy(object):
     @staticmethod
     def send_message(stream, message):
-        stream.zmq_stream.send_message(message)
+        stream.zmq_stream.send(message)
 
 
 @implementer(ISendStreamMessageStrategy)
