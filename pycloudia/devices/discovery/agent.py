@@ -15,7 +15,7 @@ class Agent(object):
     reactor = ReactorInterface
     protocol = None
     broadcast = None
-    zmq_stream_factory = None
+    stream_factory = None
     peer_factory = None
 
     def __init__(self, config):
@@ -26,8 +26,8 @@ class Agent(object):
 
         self.sink = None
         self.heartbeat = None
-        self.udp_beacon_message = None
-        self.zmq_beacon_message = None
+        self.broadcast_beacon_message = None
+        self.immediate_beacon_message = None
 
         self.peer_map = {}
 
@@ -38,21 +38,27 @@ class Agent(object):
         self._start_heartbeat()
 
     def _start_sink(self):
-        self.sink = self.zmq_stream_factory.create_sink_stream()
+        self.sink = self.stream_factory.create_sink_stream()
         self.sink.message_received.connect(self._process_sink_message)
         return self.sink.start_on_random_port(self.config.host, self.config.min_port, self.config.max_port)
 
     def _create_beacons(self, port):
-        self.udp_beacon_message = self.protocol.create_udp_beacon_message(self.config.host, port, self.config.identity)
-        self.zmq_beacon_message = self.protocol.create_zmq_beacon_message(self.config.host, port, self.config.identity)
+        self.broadcast_beacon_message = self._create_broadcast_beacon_message(port)
+        self.immediate_beacon_message = self._create_immediate_beacon_message(port)
+
+    def _create_broadcast_beacon_message(self, port):
+        return self.protocol.create_broadcast_beacon_message(self.config.host, port, self.config.identity)
+
+    def _create_immediate_beacon_message(self, port):
+        return self.protocol.create_immediate_beacon_message(self.config.host, port, self.config.identity)
 
     def _start_broadcast(self):
         self.broadcast.message_received.connect(self._process_broadcast_message)
         self.broadcast.start()
 
     def _start_heartbeat(self):
-        self.heartbeat = self.reactor.create_looping_call(self.broadcast.send_message, self.udp_beacon_message)
-        self.heartbeat.start(self.protocol.udp_heartbeat_interval)
+        self.heartbeat = self.reactor.create_looping_call(self.broadcast.send_message, self.broadcast_beacon_message)
+        self.heartbeat.start(self.protocol.broadcast_heartbeat_interval)
 
     def _process_sink_message(self, message):
         try:
@@ -60,12 +66,12 @@ class Agent(object):
             self._reset_peer_heartbeat(peer)
         except KeyError:
             assert self.protocol.is_beacon(message)
-            beacon = self.protocol.parse_zmq_beacon_message(message, message.peer)
+            beacon = self.protocol.parse_immediate_beacon_message(message, message.peer)
             self._process_beacon(beacon)
 
     def _process_broadcast_message(self, message, host):
         if self.protocol.is_beacon(message):
-            beacon = self.protocol.parse_udp_beacon_message(message, host)
+            beacon = self.protocol.parse_broadcast_beacon_message(message, host)
             self._process_beacon(beacon)
 
     def _process_beacon(self, beacon):
@@ -82,15 +88,15 @@ class Agent(object):
 
     def _create_peer(self, host, port, identity):
         push = self._create_push(host, port, identity)
-        beacon_message = push.encode_message_str(self.zmq_beacon_message)
+        beacon_message = push.encode_message_str(self.immediate_beacon_message)
         peer = self.peer_factory(identity, push)
         peer.heartbeat = self.reactor.create_looping_call(peer.push.send_message, beacon_message)
-        peer.heartbeat.start(self.protocol.zmq_heartbeat_interval)
+        peer.heartbeat.start(self.protocol.immediate_heartbeat_interval)
         return peer
 
     def _create_push(self, host, port, identity):
-        push = self.peer_map[identity] = self.zmq_stream_factory.create_push_stream(self.config.identity)
-        push.sndhwm = self.protocol.zmq_heartbeat_interval * 100
+        push = self.peer_map[identity] = self.stream_factory.create_push_stream(self.config.identity)
+        push.sndhwm = self.protocol.immediate_heartbeat_interval * 100
         push.sndtimeo = 0
         push.start(host, port)
         self.push_created.emit(identity, push)
@@ -103,20 +109,18 @@ class Agent(object):
 
 class AgentFactory(object):
     reactor = ReactorInterface
-    udp_host = None
-    udp_port = None
     protocol = None
     broadcast_factory = None
     peer_factory = Peer
 
-    def __init__(self, zmq_stream_factory):
-        self.zmq_stream_factory = zmq_stream_factory
+    def __init__(self, stream_factory):
+        self.stream_factory = stream_factory
 
     def __call__(self, config):
         instance = Agent(config)
         instance.reactor = self.reactor
         instance.protocol = self.protocol
-        instance.zmq_stream_factory = self.zmq_stream_factory
+        instance.stream_factory = self.stream_factory
         instance.broadcast = self._create_broadcast()
         instance.peer_factory = self.peer_factory
         return instance
