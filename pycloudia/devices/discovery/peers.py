@@ -37,4 +37,4 @@ class RemotePeer(BasePeer):
         self.heartbeat.reset()
 
     def send(self, message):
-        self.dealer.send(message)
+        self.dealer.send_message(message)

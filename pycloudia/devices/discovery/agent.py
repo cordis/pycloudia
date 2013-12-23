@@ -88,7 +88,7 @@ class Agent(object):
         dealer = self._create_dealer(host, port, identity)
         beacon_message = dealer.encode_message_str(self.zmq_beacon_message)
         peer = self.peer_factory(identity, dealer)
-        peer.heartbeat = self.reactor.create_looping_call(peer.dealer.send, beacon_message)
+        peer.heartbeat = self.reactor.create_looping_call(peer.dealer.send_message, beacon_message)
         peer.heartbeat.start(self.protocol.zmq_heartbeat_interval)
         return peer
 

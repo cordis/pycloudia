@@ -19,7 +19,7 @@ class RouterPeers(object):
         self.callback_list.append(callback)
 
     def send(self, message):
-        self.socket.send(message)
+        self.socket.send_message(message)
 
     @inline_callbacks
     def _on_message_received(self, message):
@@ -40,7 +40,7 @@ class DealerPeers(object):
         self.callback_list.append(callback)
 
     def send(self, message):
-        self.sockets_map[message.peer].send(message)
+        self.sockets_map[message.peer].send_message(message)
 
     @inline_callbacks
     def _on_message_received(self, message):
@@ -105,7 +105,7 @@ class BiDirectionalChannel(object):
 
     def send_package(self, package):
         message = self._encode_package(package)
-        self.peers.send(message)
+        self.peers.send_message(message)
 
     def _encode_package(self, package):
         return self.message_factory(
