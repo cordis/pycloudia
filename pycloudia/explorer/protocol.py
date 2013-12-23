@@ -1,7 +1,7 @@
-from pycloudia.devices.consts import DEVICE
+from pycloudia.explorer.consts import EXPLORER
 
 
-__all__ = ['DiscoveryProtocol']
+__all__ = ['Protocol']
 
 
 class BaseBeacon(object):
@@ -28,10 +28,10 @@ class ImmediateBeacon(BaseBeacon):
         return ':'.join([self.prefix, self.host, str(self.port)])
 
 
-class DiscoveryProtocol(object):
-    prefix = DEVICE.DISCOVERY.PROTOCOL
-    broadcast_heartbeat_interval = DEVICE.DISCOVERY.BROADCAST_HEARTBEAT_INTERVAL
-    immediate_heartbeat_interval = DEVICE.DISCOVERY.IMMEDIATE_HEARTBEAT_INTERVAL
+class Protocol(object):
+    prefix = EXPLORER.PROTOCOL_PREFIX
+    broadcast_heartbeat_interval = EXPLORER.BROADCAST_HEARTBEAT_INTERVAL
+    immediate_heartbeat_interval = EXPLORER.IMMEDIATE_HEARTBEAT_INTERVAL
 
     broadcast_beacon_cls = BroadcastBeacon
     immediate_beacon_cls = ImmediateBeacon

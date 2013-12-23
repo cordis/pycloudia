@@ -1,22 +1,14 @@
 from pysigslot import Signal
 
 from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.explorer.beans import Peer
 
 
-class Peer(object):
-    heartbeat = None
-
-    def __init__(self, identity, push):
-        self.identity = identity
-        self.push = push
-
-
-class Agent(object):
+class Runner(object):
     reactor = ReactorInterface
     protocol = None
     broadcast = None
     stream_factory = None
-    peer_factory = None
 
     def __init__(self, config):
         self.config = config
@@ -87,14 +79,13 @@ class Agent(object):
         return peer
 
     def _create_peer(self, host, port, identity):
-        push = self._create_push(host, port, identity)
-        beacon_message = push.encode_message_str(self.immediate_beacon_message)
-        peer = self.peer_factory(identity, push)
-        peer.heartbeat = self.reactor.create_looping_call(peer.push.send_message, beacon_message)
-        peer.heartbeat.start(self.protocol.immediate_heartbeat_interval)
-        return peer
+        stream = self._create_push_stream(host, port, identity)
+        beacon_message = stream.encode_message_str(self.immediate_beacon_message)
+        heartbeat = self.reactor.create_looping_call(stream.send_message, beacon_message)
+        heartbeat.start(self.protocol.immediate_heartbeat_interval)
+        return Peer(identity=identity, stream=stream, heartbeat=heartbeat)
 
-    def _create_push(self, host, port, identity):
+    def _create_push_stream(self, host, port, identity):
         push = self.peer_map[identity] = self.stream_factory.create_push_stream(self.config.identity)
         push.sndhwm = self.protocol.immediate_heartbeat_interval * 100
         push.sndtimeo = 0
@@ -107,22 +98,20 @@ class Agent(object):
         peer.heartbeat.reset()
 
 
-class AgentFactory(object):
+class RunnerFactory(object):
     reactor = ReactorInterface
     protocol = None
     broadcast_factory = None
-    peer_factory = Peer
 
     def __init__(self, stream_factory):
         self.stream_factory = stream_factory
 
     def __call__(self, config):
-        instance = Agent(config)
+        instance = Runner(config)
         instance.reactor = self.reactor
         instance.protocol = self.protocol
         instance.stream_factory = self.stream_factory
         instance.broadcast = self._create_broadcast()
-        instance.peer_factory = self.peer_factory
         return instance
 
     def _create_broadcast(self):

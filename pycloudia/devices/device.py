@@ -2,7 +2,7 @@ from uuid import uuid1
 
 from pycloudia.reactor.interfaces import ReactorInterface
 from pycloudia.uitls.defer import inline_callbacks
-from pycloudia.devices.discovery.agent import Agent
+from pycloudia.explorer.runner import Runner
 
 
 class Device(object):
@@ -29,7 +29,7 @@ class Device(object):
         yield self.reactor.call_later(15, self._start_activities)
 
     def _create_discoverer(self):
-        discoverer = Agent(self.identity, self.address)
+        discoverer = Runner(self.identity, self.address)
         discoverer.reactor = self.reactor
         return discoverer
 
