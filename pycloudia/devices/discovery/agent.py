@@ -17,7 +17,7 @@ class Agent(object):
     reactor = ReactorInterface
     protocol = None
     broadcast = None
-    zmq_socket_factory = None
+    zmq_stream_factory = None
     peer_factory = None
 
     def __init__(self, identity, config):
@@ -41,7 +41,7 @@ class Agent(object):
         self._start_heartbeat()
 
     def _start_router(self):
-        self.router = self.zmq_socket_factory.create_router_socket()
+        self.router = self.zmq_stream_factory.create_router_stream()
         self.router.message_received.connect(self._process_router_message)
         return self.router.start_on_random_port(self.config.host, self.config.min_port, self.config.max_port)
 
@@ -93,7 +93,7 @@ class Agent(object):
         return peer
 
     def _create_dealer(self, host, port, identity):
-        dealer = self.peer_map[identity] = self.zmq_socket_factory.create_dealer_socket(identity)
+        dealer = self.peer_map[identity] = self.zmq_stream_factory.create_dealer_stream(identity)
         dealer.sndhwm = self.protocol.zmq_heartbeat_interval * 100
         dealer.sndtimeo = 0
         dealer.message_received.connect(partial(self._process_dealer_message, identity))
@@ -118,14 +118,14 @@ class AgentFactory(object):
     broadcast_factory = None
     peer_factory = Peer
 
-    def __init__(self, zmq_socket_factory):
-        self.zmq_socket_factory = zmq_socket_factory
+    def __init__(self, zmq_stream_factory):
+        self.zmq_stream_factory = zmq_stream_factory
 
     def __call__(self, identity, config):
         instance = Agent(identity, config)
         instance.reactor = self.reactor
         instance.protocol = self.protocol
-        instance.zmq_socket_factory = self.zmq_socket_factory
+        instance.zmq_stream_factory = self.zmq_stream_factory
         instance.broadcast = self._create_broadcast()
         instance.peer_factory = self.peer_factory
         return instance

@@ -46,3 +46,14 @@ class UdpMulticast(object):
 
     def send(self, message):
         self.adapter.send(message)
+
+
+class UdpMulticastFactory(object):
+    factory = UdpMulticast
+
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+
+    def __call__(self):
+        return self.factory(self.host, self.port)

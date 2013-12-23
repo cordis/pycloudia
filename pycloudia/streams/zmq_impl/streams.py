@@ -3,27 +3,28 @@ from zmq.sugar import Socket as ZmqSocket
 from zmq.sugar import constants as zmq_constants
 
 from pysigslot import Signal
-from pycloudia.sockets.zmq_impl.strategies import *
+from pycloudia.streams.zmq_impl.strategies import *
 
 
 __all__ = [
-    'RouterSocket',
-    'DealerSocket',
-    'SinkSocket',
-    'PushSocket',
-    'PullSocket',
-    'BlowSocket',
-    'SubSocket',
-    'PubSocket',
+    'RouterStream',
+    'DealerStream',
+    'SinkStream',
+    'PushStream',
+    'PullStream',
+    'BlowStream',
+    'SubStream',
+    'PubStream',
 ]
 
 
-class BaseSocket(object):
+class BaseStream(object):
     zmq_socket_factory = ZmqSocket
     zmq_stream_factory = ZmqStream
     zmq_socket_type = NotImplemented
     zmq_stream_start_strategy = NotImplemented
-    zmq_stream_message_strategy = NotImplemented
+    zmq_stream_read_strategy = NotImplemented
+    zmq_stream_send_strategy = NotImplemented
 
     @classmethod
     def create_instance(cls, zmq_context, zmq_io_loop, *args, **kwargs):
@@ -53,13 +54,13 @@ class BaseSocket(object):
         )
 
     def on_message_received(self, message_list):
-        self.zmq_stream_message_strategy.on_message_received(self, message_list)
+        self.zmq_stream_read_strategy.on_message_received(self, message_list)
 
     def send(self, message):
-        self.zmq_stream_message_strategy.send_message(self, message)
+        self.zmq_stream_send_strategy.send_message(self, message)
 
     def encode_message_str(self, message_str):
-        return self.zmq_stream_message_strategy.message_factory(message_str)
+        return self.zmq_stream_read_strategy.message_factory(message_str)
 
     def close(self):
         self.zmq_stream.close()
@@ -77,54 +78,67 @@ class BaseSocket(object):
         return setattr(self.zmq_stream.socket, key, value)
 
 
-class RouterSocket(BaseSocket):
+class RouterStream(BaseStream):
     zmq_socket_type = zmq_constants.ROUTER
     zmq_stream_start_strategy = BindStartStrategy()
-    zmq_stream_message_strategy = RouterMessageStrategy()
+    zmq_stream_read_strategy = SignedReadMessageStrategy()
+    zmq_stream_send_strategy = SignedSendMessageStrategy()
 
 
-class DealerSocket(BaseSocket):
+class DealerStream(BaseStream):
     zmq_socket_type = zmq_constants.DEALER
     zmq_stream_start_strategy = ConnectStartStrategy()
-    zmq_stream_message_strategy = DealerMessageStrategy()
+    zmq_stream_read_strategy = DealerReadMessageStrategy()
+    zmq_stream_send_strategy = DealerSendMessageStrategy()
 
     def __init__(self, zmq_context, zmq_io_loop, identity):
         assert identity is not None
-        super(DealerSocket, self).__init__(zmq_context, zmq_io_loop)
+        super(DealerStream, self).__init__(zmq_context, zmq_io_loop)
         self.zmq_stream.socket.identity = identity
 
 
-class SinkSocket(BaseSocket):
+class SinkStream(BaseStream):
     zmq_socket_type = zmq_constants.PULL
     zmq_stream_start_strategy = BindStartStrategy()
-    zmq_stream_message_strategy = SimpleMessageStrategy()
+    zmq_stream_read_strategy = SimpleReadMessageStrategy()
+    zmq_stream_send_strategy = SimpleSendMessageStrategy()
 
 
-class PushSocket(BaseSocket):
+class PushStream(BaseStream):
     zmq_socket_type = zmq_constants.PUSH
     zmq_stream_start_strategy = ConnectStartStrategy()
-    zmq_stream_message_strategy = SimpleMessageStrategy()
+    zmq_stream_read_strategy = SimpleReadMessageStrategy()
+    zmq_stream_send_strategy = SimpleSendMessageStrategy()
+
+    def __init__(self, zmq_context, zmq_io_loop, identity):
+        assert identity is not None
+        super(PushStream, self).__init__(zmq_context, zmq_io_loop)
+        self.zmq_stream.socket.identity = identity
 
 
-class PullSocket(BaseSocket):
+class PullStream(BaseStream):
     zmq_socket_type = zmq_constants.PULL
     zmq_stream_start_strategy = ConnectStartStrategy()
-    zmq_stream_message_strategy = SimpleMessageStrategy()
+    zmq_stream_read_strategy = SimpleReadMessageStrategy()
+    zmq_stream_send_strategy = SimpleSendMessageStrategy()
 
 
-class BlowSocket(BaseSocket):
+class BlowStream(BaseStream):
     zmq_socket_type = zmq_constants.PUSH
     zmq_stream_start_strategy = BindStartStrategy()
-    zmq_stream_message_strategy = SimpleMessageStrategy()
+    zmq_stream_read_strategy = SimpleReadMessageStrategy()
+    zmq_stream_send_strategy = SimpleSendMessageStrategy()
 
 
-class SubSocket(BaseSocket):
+class SubStream(BaseStream):
     zmq_socket_type = zmq_constants.SUB
     zmq_stream_start_strategy = ConnectStartStrategy()
-    zmq_stream_message_strategy = SimpleMessageStrategy()
+    zmq_stream_read_strategy = SimpleReadMessageStrategy()
+    zmq_stream_send_strategy = SimpleSendMessageStrategy()
 
 
-class PubSocket(BaseSocket):
+class PubStream(BaseStream):
     zmq_socket_type = zmq_constants.PUB
     zmq_stream_start_strategy = BindStartStrategy()
-    zmq_stream_message_strategy = SimpleMessageStrategy()
+    zmq_stream_read_strategy = SimpleReadMessageStrategy()
+    zmq_stream_send_strategy = SimpleSendMessageStrategy()

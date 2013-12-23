@@ -43,16 +43,15 @@ class DiscoveryProtocol(object):
         return str(self._create_beacon(self.udp_beacon_cls, host, port, identity))
 
     def create_zmq_beacon_message(self, host, port, identity):
-        return str(self._create_beacon(self.udp_beacon_cls, host, port, identity))
-
-    def _create_beacon(self, factory, host, port, identity):
-        return factory(self.prefix, host, port, identity)
+        return str(self._create_beacon(self.zmq_beacon_cls, host, port, identity))
 
     def parse_udp_beacon_message(self, message, host):
-        print message, host
         _, port, identity = message.split(':')
         return self._create_beacon(self.udp_beacon_cls, host, port, identity)
 
     def parse_zmq_beacon_message(self, message, identity):
         _, host, port = message.split(':')
-        return self._create_beacon(self.udp_beacon_cls, host, port, identity)
+        return self._create_beacon(self.zmq_beacon_cls, host, port, identity)
+
+    def _create_beacon(self, factory, host, port, identity):
+        return factory(self.prefix, host, port, identity)
