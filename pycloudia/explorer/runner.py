@@ -83,7 +83,7 @@ class Runner(object):
 
     def _create_peer(self, host, port, identity):
         stream = self._create_push_stream(host, port, identity)
-        beacon_message = stream.encode_message_str(self.immediate_beacon_message)
+        beacon_message = stream.encode_message_string(self.immediate_beacon_message)
         heartbeat = self.reactor.create_looping_call(stream.send_message, beacon_message)
         heartbeat.start(self.protocol.immediate_heartbeat_interval)
         return Peer(identity=identity, stream=stream, heartbeat=heartbeat)

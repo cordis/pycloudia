@@ -62,8 +62,8 @@ class BaseStream(object):
     def send_message(self, message):
         self.zmq_stream_send_strategy.send_message(self, message)
 
-    def encode_message_str(self, message_str):
-        return self.zmq_message_factory(message_str)
+    def encode_message_string(self, message_string):
+        return self.zmq_message_factory(message_string)
 
     def close(self):
         self.zmq_stream.close()
