@@ -6,6 +6,7 @@ from pycloudia.explorer.beans import Peer
 
 class Runner(object):
     reactor = ReactorInterface
+    logger = None
     protocol = None
     broadcast = None
     stream_factory = None
@@ -13,8 +14,9 @@ class Runner(object):
     def __init__(self, config):
         self.config = config
 
-        self.push_created = Signal()
-        self.push_deleted = Signal()
+        self.incoming_stream_created = Signal()
+        self.outgoing_stream_created = Signal()
+        self.outgoing_stream_deleted = Signal()
 
         self.sink = None
         self.heartbeat = None
@@ -67,6 +69,7 @@ class Runner(object):
             self._process_beacon(beacon)
 
     def _process_beacon(self, beacon):
+        print beacon
         if beacon.identity != self.config.identity:
             peer = self._get_or_create_peer(beacon.host, beacon.port, beacon.identity)
             self._reset_peer_heartbeat(peer)
@@ -90,7 +93,7 @@ class Runner(object):
         push.sndhwm = self.protocol.immediate_heartbeat_interval * 100
         push.sndtimeo = 0
         push.start(host, port)
-        self.push_created.emit(identity, push)
+        self.outgoing_stream_created.emit(identity, push)
         return push
 
     @staticmethod
@@ -99,6 +102,7 @@ class Runner(object):
 
 
 class RunnerFactory(object):
+    logger = None
     reactor = ReactorInterface
     protocol = None
     broadcast_factory = None
@@ -108,6 +112,7 @@ class RunnerFactory(object):
 
     def __call__(self, config):
         instance = Runner(config)
+        instance.logger = self.logger
         instance.reactor = self.reactor
         instance.protocol = self.protocol
         instance.stream_factory = self.stream_factory

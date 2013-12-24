@@ -1,12 +1,12 @@
 from pycloudia.channels.channels import Channel
-from pycloudia.packages.decoder import PackageDecoder
-from pycloudia.packages.encoder import PackageEncoder
+from pycloudia.packages.decoder import Decoder
+from pycloudia.packages.encoder import Encoder
 
 
 class ChannelFactory(object):
     channel_cls = Channel
-    package_decoder = PackageDecoder
-    package_encoder = PackageEncoder
+    package_decoder = Decoder
+    package_encoder = Encoder
 
     def __init__(self, options):
         self.options = options

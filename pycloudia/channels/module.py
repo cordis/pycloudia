@@ -1,8 +1,8 @@
 from springpython.config import PythonConfig, Object
 from springpython.context import scope
 
-from pycloudia.packages.decoder import PackageDecoder
-from pycloudia.packages.encoder import PackageEncoder
+from pycloudia.packages.decoder import Decoder
+from pycloudia.packages.encoder import Encoder
 from pycloudia.packages.factory import PackageFactory
 from pycloudia.channels.factory import ChannelFactory
 from pycloudia.channels.responder import Responder
@@ -28,11 +28,11 @@ class ChannelsModule(PythonConfig):
 
     @Object(scope.SINGLETON)
     def package_encoder(self):
-        return PackageEncoder()
+        return Encoder()
 
     @Object(scope.SINGLETON)
     def package_decoder(self):
-        return PackageDecoder(self.package_factory())
+        return Decoder(self.package_factory())
 
     @Object(scope.SINGLETON)
     def package_factory(self):

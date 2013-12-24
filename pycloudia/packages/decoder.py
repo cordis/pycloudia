@@ -1,35 +1,31 @@
-from logging import getLogger
+from zope.interface import implementer
 
-from pycloudia.consts import PACKAGE
-
-
-class InvalidMessageError(RuntimeError):
-    pass
+from pycloudia.packages.exceptions import InvalidFormatError
+from pycloudia.packages.interfaces import IDecoder
 
 
-class PackageDecoder(object):
-    logger = getLogger('pycloudia.packages')
+@implementer(IDecoder)
+class Decoder(object):
+    content_delimiter = None
+    headers_delimiter = None
 
     def __init__(self, package_factory):
         self.package_factory = package_factory
 
     def decode(self, message):
-        raw_headers, raw_content = self._extract_headers_and_content(message)
-        headers = self._parse_headers(raw_headers)
-        return self.package_factory(raw_content, headers)
+        headers_string, content = self._extract_headers_and_content(message)
+        headers = self._parse_headers(headers_string)
+        return self.package_factory(content, headers)
 
     def _extract_headers_and_content(self, message):
         try:
-            headers, content = message.split(PACKAGE.DELIMITER, 1)
+            return message.split(self.content_delimiter, 1)
         except ValueError:
-            self.logger.exception('Cant decode message: %s', message)
-            return '', ''
-        else:
-            return headers, content
+            raise InvalidFormatError('Unable decode message: {1}'.format(message))
 
-    def _parse_headers(self, string):
+    def _parse_headers(self, headers_string):
         ret = {}
-        for line in string.split('\n'):
+        for line in headers_string.split(self.headers_delimiter):
             values = line.split(':', 1)
             if len(values) != 2:
                 continue
