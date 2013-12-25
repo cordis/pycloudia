@@ -1,4 +1,4 @@
-import collections
+import collection
 import functools
 
 from pycloudia.channels.consts import METHOD
@@ -7,7 +7,7 @@ from pycloudia.channels.consts import METHOD
 __all__ = ['dealer', 'router', 'push', 'sink', 'blow', 'pull', 'publish', 'subscribe']
 
 
-ChannelOptions = collections.namedtuple('BaseChannelOptions', '''
+ChannelOptions = collection.namedtuple('BaseChannelOptions', '''
 name
 impl
 args

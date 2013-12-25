@@ -9,15 +9,17 @@ class Runner(object):
     decisive_header = None
     package_encoder = IPackageEncoder
     package_decoder = IPackageDecoder
+    mapper_factory = None
 
     def __init__(self):
         self.incoming_stream = None
         self.outgoing_stream_map = {}
         self.on_package = Signal()
+        self.mapper = self.mapper_factory()
 
     def attach_incoming_stream(self, stream):
         if self.incoming_stream is not None:
-            raise KeyError('Incoming stream {1} already attached'.format(self.incoming_stream.identity))
+            raise KeyError('Incoming stream {0} already attached'.format(self.incoming_stream.identity))
         self.incoming_stream = stream
         self.incoming_stream.message_received.connect(self._read_message)
 
@@ -28,13 +30,7 @@ class Runner(object):
         except (ValueError, KeyError) as e:
             self.logger.exception(e)
         else:
-            if self.is_outgoing(decisive):
-                raise NotImplementedError()
-            else:
-                self.on_package.emit(package)
-
-    def is_outgoing(self, decisive):
-        return not decisive
+            self._process_package(decisive, package)
 
     def attach_outgoing_stream(self, stream):
         pass
@@ -44,13 +40,22 @@ class Runner(object):
 
     def send_package(self, package):
         decisive = package.headers[self.decisive_header]
+        self._process_package(decisive, package)
+
+    def _process_package(self, decisive, package):
         if not self.is_outgoing(decisive):
             self.on_package.emit(package)
         else:
-            stream = self._select_stream(decisive)
-            message = self.package_encoder.encode(package)
-            message = stream.encode_message_string(message)
-            stream.send_message(message)
+            self._send_package(decisive, package)
+
+    def is_outgoing(self, decisive):
+        return not decisive
+
+    def _send_package(self, decisive, package):
+        stream = self._select_stream(decisive)
+        message = self.package_encoder.encode(package)
+        message = stream.encode_message_string(message)
+        stream.send_message(message)
 
     def _select_stream(self, decisive):
         raise NotImplementedError(decisive)

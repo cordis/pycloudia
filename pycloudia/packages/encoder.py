@@ -32,11 +32,11 @@ class Encoder(object):
             try:
                 return message.encode(self.encoding)
             except UnicodeEncodeError:
-                raise InvalidEncodingError('Unable convert package to {1}'.format(self.encoding))
+                raise InvalidEncodingError('Unable convert package to {0}'.format(self.encoding))
 
     def _encode_headers(self, headers):
         return self.headers_delimiter.join([
-            '{1}:{2}'.format(name, value)
+            '{0}:{1}'.format(name, value)
             for name, value
             in headers.data.iteritems()
         ])

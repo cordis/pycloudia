@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collection import namedtuple
 from logging import getLogger
 from inspect import getmembers
 from itertools import ifilter, imap

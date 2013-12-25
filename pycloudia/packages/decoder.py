@@ -21,7 +21,7 @@ class Decoder(object):
         try:
             return message.split(self.content_delimiter, 1)
         except ValueError:
-            raise InvalidFormatError('Unable decode message: {1}'.format(message))
+            raise InvalidFormatError('Unable decode message: {0}'.format(message))
 
     def _parse_headers(self, headers_string):
         ret = {}
