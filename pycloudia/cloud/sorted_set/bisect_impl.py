@@ -40,24 +40,25 @@ class SortedSet(object):
         return self.__class__, (self.subject, )
 
     def __contains__(self, item):
-        insert_before_index = bisect_left(self.subject, item)
-        insert_after_index = bisect_right(self.subject, item)
-        return insert_before_index != insert_after_index
-
-    def index(self, item):
-        insert_before_index = bisect_left(self.subject, item)
-        insert_after_index = bisect_right(self.subject, item)
-        if insert_before_index == insert_after_index:
-            raise ValueError('{0!r} not found'.format(item))
-        return insert_before_index
-
-    def insert(self, item):
-        insert_before_index = bisect_left(self.subject, item)
-        insert_after_index = bisect_right(self.subject, item)
-        if insert_before_index != insert_after_index:
-            raise ValueError('{0!r} not found'.format(item))
-        self.subject.insert(insert_before_index, item)
+        _, contains = self._find(item)
+        return contains
 
     def remove(self, item):
         index = self.index(item)
         del self.subject[index]
+
+    def index(self, item):
+        index, contains = self._find(item)
+        if not contains:
+            raise ValueError('{0!r} not found'.format(item))
+        return index
+
+    def insert(self, item):
+        index, contains = self._find(item)
+        if contains:
+            raise ValueError('{0!r} already exists'.format(item))
+        self.subject.insert(index, item)
+
+    def _find(self, item):
+        index = bisect_left(self.subject, item)
+        return index, item == self.subject[index]
