@@ -1,4 +1,4 @@
-from collection import namedtuple
+from collections import namedtuple
 
 from springpython.config import PythonConfig, Object
 from springpython.context import scope

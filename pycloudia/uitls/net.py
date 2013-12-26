@@ -1,4 +1,4 @@
-import collection
+import collections
 import socket
 import fcntl
 import struct
@@ -10,7 +10,7 @@ __all__ = ['Address', 'get_ip_address']
 SIOCGIFADDR = 0x8915
 
 
-Address = collection.namedtuple('Address', 'host port')
+Address = collections.namedtuple('Address', 'host port')
 
 
 def get_ip_address(interface_name):

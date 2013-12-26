@@ -1,4 +1,4 @@
-from collection import deque
+from collections import deque
 
 from pycloudia.consts import PACKAGE
 from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred

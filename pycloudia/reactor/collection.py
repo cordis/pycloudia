@@ -1,4 +1,4 @@
-from collection import deque
+from collections import deque
 
 from pycloudia.uitls.defer import Deferred, inline_callbacks
 from pycloudia.reactor.interfaces import ReactorInterface
