@@ -1,82 +1,93 @@
-from collections import namedtuple
+import logging
 
 from springpython.config import PythonConfig, Object
 from springpython.context import scope
 
-from pycloudia.uitls.abstracts import AbstractRegistry
-from pycloudia.nodes import WorkerNode, ConfigNode
-from pycloudia.reactor import twisted_impl
-from pycloudia.services import config
-from pycloudia import channels
-
 
 class Config(PythonConfig):
-    options_factory = namedtuple('ConfigOptions', '''
-internal_host
-external_host
-config_address_list
-cluster_name
-''')
+    """
+    Usage:
+        context = ApplicationContext(Config())
+        context.get_object('bootstrap')
+    """
 
     def __init__(self, options):
         self.options = options
         super(Config, self).__init__()
 
     @Object(scope.SINGLETON)
-    def config(self):
-        instance = self._create_node(ConfigNode)
-        instance.config_service_factory = self.node_config_service_factory()
-        return instance
-
-    @Object(scope.SINGLETON)
-    def worker(self):
-        return self._create_node(WorkerNode)
-
-    def _create_node(self, cls):
-        instance = ConfigNode(self.options)
-        instance.reactor = self.reactor()
-        instance.console = self.console()
-        instance.runtime_factory = self.node_runtime_factory()
-        instance.worker_service_factory = self.node_worker_service_factory()
-        return instance
-
-    @Object(scope.SINGLETON)
-    def reactor(self):
-        return twisted_impl.ReactorAdapter.create_instance()
-
-    @Object(scope.SINGLETON)
-    def console(self):
-        return None
-
-    @Object(scope.PROTOTYPE)
-    def node_runtime_factory(self):
+    def bootstrap(self):
         raise NotImplementedError()
 
     @Object(scope.SINGLETON)
-    def node_config_service_factory(self):
-        instance = config.ServiceFactory()
-        instance.state_factory = self.node_config_service_state_factory()
-        instance.request_factory = self.node_config_service_request_factory()
-        instance.processor_factory = self.node_config_service_processor_factory()
+    def starter(self):
+        from pycloudia.bootstrap.starter import Starter
+        instance = Starter()
+        instance.logger = logging.getLogger('starter')
+        instance.io_loop = self.io_loop()
+        instance.reactor = self.reactor()
+        return instance
+
+    @Object(scope.PROTOTYPE)
+    def device(self):
+        from pycloudia.bootstrap.device import Device
+        instance = Device()
+        instance.logger = logging.getLogger('device')
+        instance.reactor = self.reactor()
+        instance.explorer = self.explorer()
+        return instance
+
+    @Object(scope.PROTOTYPE)
+    def explorer(self):
+        config = self.explorer_config()
+        factory = self.explorer_factory()
+        return factory(config)
+
+    @Object(scope.PROTOTYPE)
+    def explorer_config(self):
+        from pycloudia.explorer import ExplorerConfig
+        return ExplorerConfig(
+            host=self._get_host_from_options(),
+            min_port=self.options.min_port,
+            max_port=self.options.max_port,
+            identity=self.identity_factory()(),
+        )
+
+    @Object(scope.SINGLETON)
+    def identity_factory(self):
+        from uuid import uuid4
+        return lambda: str(uuid4())
+
+    def _get_host_from_options(self):
+        from pycloudia.uitls.net import get_ip_address
+        if self.options.host is not None:
+            return self.options.host
+        return get_ip_address(self.options.interface)
+
+    @Object(scope.SINGLETON)
+    def explorer_factory(self):
+        from pycloudia.explorer import ExplorerFactory, ExplorerProtocol
+        from pycloudia.broadcast.udp import UdpMulticastFactory
+        instance = ExplorerFactory()
+        instance.logger = logging.getLogger('pycloudia.explorer')
+        instance.reactor = self.reactor()
+        instance.protocol = ExplorerProtocol()
+        instance.stream_factory = self.stream_factory()
+        instance.broadcast_factory = UdpMulticastFactory(self.options.udp_host, self.options.udp_port)
         return instance
 
     @Object(scope.SINGLETON)
-    def node_config_service_state_factory(self):
-        return config.ServiceStateFactory(self.options)
-
-    @Object(scope.PROTOTYPE)
-    def node_config_service_request_factory(self):
-        return config.RequestsFactory()
-
-    @Object(scope.PROTOTYPE)
-    def node_config_service_processor_factory(self):
-        return config.ProcessorsFactory()
+    def stream_factory(self):
+        from pycloudia.streams.zmq_impl.factory import StreamFactory
+        return StreamFactory.create_instance(self.io_loop())
 
     @Object(scope.SINGLETON)
-    def socket_factory_registry(self):
-        return AbstractRegistry({
-            channels.IMPL.ZMQ: self._create_zmq_socket_factory(),
-        }, channels.IMPL.ZMQ)
+    def reactor(self):
+        from tornado.platform.twisted import TornadoReactor
+        from pycloudia.reactor.twisted_impl import ReactorAdapter
+        return ReactorAdapter(TornadoReactor(self.io_loop()))
 
-    def _create_zmq_socket_factory(self):
-        return channels.txzmq_impl.SocketFactory()
+    @Object(scope.SINGLETON)
+    def io_loop(self):
+        from zmq.eventloop.ioloop import IOLoop
+        return IOLoop.instance()

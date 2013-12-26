@@ -69,7 +69,6 @@ class Runner(object):
             self._process_beacon(beacon)
 
     def _process_beacon(self, beacon):
-        print beacon
         if beacon.identity != self.config.identity:
             peer = self._get_or_create_peer(beacon.host, beacon.port, beacon.identity)
             self._reset_peer_heartbeat(peer)
@@ -105,10 +104,8 @@ class RunnerFactory(object):
     logger = None
     reactor = ReactorInterface
     protocol = None
+    stream_factory = None
     broadcast_factory = None
-
-    def __init__(self, stream_factory):
-        self.stream_factory = stream_factory
 
     def __call__(self, config):
         instance = Runner(config)
