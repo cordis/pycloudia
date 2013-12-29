@@ -1,4 +1,4 @@
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 
 
 class IListener(Interface):
@@ -9,31 +9,43 @@ class IListener(Interface):
 
 
 class IClient(Interface):
-    def connection_made():
-        """
-        Protocol callback
-        """
+    client_id = Attribute(''':type client_id: str''')
 
-    def connection_done():
+    def send_message(message):
         """
-        Protocol callback
-        """
-
-    def connection_lost(reason):
-        """
-        Protocol callback
-        :param str reason:
-        """
-
-    def read_message(message):
-        """
-        Protocol callback
-        :param str message:
+        :param C{str} message:
         """
 
 
 class IClientDirector(Interface):
-    def create_client(protocol):
+    def client_id_factory():
         """
-        :rtype: C{pycloudia.activities.facade.interfaces.IClient}
+        :rtype: C{str}
+        """
+
+    def connection_made(client):
+        """
+        :param C{IClient} client:
+        """
+
+    def connection_done(client):
+        """
+        :param C{IClient} client:
+        """
+
+    def connection_lost(client, reason):
+        """
+        :param C{IClient} client:
+        :param C{str} reason:
+        """
+
+    def read_message(client, message):
+        """
+        :param C{IClient} client:
+        :param str message:
+        """
+
+    def send_package(package):
+        """
+        :param C{pycloudia.packages.interfaces.IPackage} package:
         """

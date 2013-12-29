@@ -14,8 +14,8 @@ class Router(object):
             raise ActivityNotFoundError(package, activity)
 
     @staticmethod
-    def _get_header(package, header):
+    def _get_header(package, name):
         try:
-            return package.get_header(header)
+            return package.headers[name]
         except KeyError:
-            raise HeaderNotFoundError(package, header)
+            raise HeaderNotFoundError(package, name)

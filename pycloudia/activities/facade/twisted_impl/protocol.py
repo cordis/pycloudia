@@ -1,8 +1,13 @@
+from zope.interface import implementer
+
 from twisted.protocols.basic import NetstringReceiver
 from twisted.internet.protocol import Factory
 from twisted.internet.protocol import connectionDone
 
+from pycloudia.activities.facade.interfaces import IClient
 
+
+@implementer(IClient)
 class Protocol(NetstringReceiver):
     factory = None
     client_id_factory = None
@@ -30,22 +35,25 @@ class Protocol(NetstringReceiver):
 class ProtocolServerFactory(Factory):
     protocol = Protocol
 
-    def __init__(self, subject):
-        self.subject = subject
+    def __init__(self, director):
+        """
+        :param C{pycloudia.activities.facade.interfaces.IClientDirector} director:
+        """
+        self.director = director
 
     def buildProtocol(self, address):
         protocol = Factory.buildProtocol(self, address)
-        protocol.client_id_factory = self.subject.client_id_factory
+        protocol.client_id_factory = self.director.client_id_factory
         return protocol
 
     def connection_made(self, protocol):
-        self.subject.connection_made(protocol.client_id, protocol.send_message)
+        self.director.connection_made(protocol)
 
     def connection_lost(self, protocol, reason):
-        self.subject.connection_lost(protocol.client_id, reason)
+        self.director.connection_lost(protocol, reason)
 
     def connection_done(self, protocol):
-        self.subject.connection_done(protocol.client_id)
+        self.director.connection_done(protocol)
 
     def read_message(self, protocol, message):
-        self.subject.read_message(protocol.client_id, message)
+        self.director.read_message(protocol, message)

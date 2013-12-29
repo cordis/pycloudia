@@ -18,7 +18,7 @@ class Activity(object):
 
     @maybe_deferred
     def process_outgoing_package(self, client_id, package):
-        return self.director.process_outgoing_package(client_id, package)
+        return self.director.send_package(client_id, package)
 
 
 @implementer(IActivityFactory)
