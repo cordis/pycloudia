@@ -4,7 +4,7 @@ from twisted.protocols.basic import NetstringReceiver
 from twisted.internet.protocol import Factory
 from twisted.internet.protocol import connectionDone
 
-from pycloudia.activities.facade.interfaces import IClient
+from pycloudia.activities.facades.interfaces import IClient
 
 
 @implementer(IClient)
@@ -37,7 +37,7 @@ class ProtocolServerFactory(Factory):
 
     def __init__(self, director):
         """
-        :param C{pycloudia.activities.facade.interfaces.IClientDirector} director:
+        :type director: C{pycloudia.activities.facades.interfaces.IClientDirector}
         """
         self.director = director
 

@@ -14,7 +14,6 @@ class Activity(object):
     @maybe_deferred
     def process_incoming_package(self, package):
         package.headers[HEADER.CLIENT_ID] = self.client_id
-        package.headers[HEADER.FACADE_ID] = self.facade_id
         return self.router.route_package(package)
 
     @maybe_deferred

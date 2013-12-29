@@ -15,7 +15,7 @@ Address = collections.namedtuple('Address', 'host port')
 
 def get_ip_address(interface_name):
     """
-    :param interface_name: str
+    :type interface_name: str
     :rtype: str
     :raise: IOError
     """

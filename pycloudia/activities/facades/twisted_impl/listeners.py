@@ -2,8 +2,8 @@ from zope.interface import implementer
 from twisted.internet.interfaces import IReactorTCP
 from twisted.internet.error import CannotListenError
 
-from pycloudia.activities.facade.interfaces import IListener
-from pycloudia.activities.facade.exceptions import ListenFailedError
+from pycloudia.activities.facades.interfaces import IListener
+from pycloudia.activities.facades.exceptions import ListenFailedError
 
 
 @implementer(IListener)

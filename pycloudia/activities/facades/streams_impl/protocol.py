@@ -1,6 +1,6 @@
 from zope.interface import implementer
 
-from pycloudia.activities.facade.interfaces import IProtocol, IProtocolFactory
+from pycloudia.activities.facades.interfaces import IProtocol, IProtocolFactory
 
 
 @implementer(IProtocol)

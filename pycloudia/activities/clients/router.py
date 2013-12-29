@@ -7,7 +7,7 @@ class Router(object):
 
     def route_package(self, package):
         activity = self._get_header(package, HEADER.ACTIVITY)
-        resource = self._get_header(package, HEADER.RESOURCE)
+        resource = self._get_header(package, HEADER.COMMAND)
         try:
             return self.activity_map[activity].route_package(resource, package)
         except KeyError:

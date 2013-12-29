@@ -2,8 +2,8 @@ from zope.interface import Interface, Attribute
 
 
 class IPackage(Interface):
-    content = Attribute(''':type: C{str}''')
-    headers = Attribute(''':type: C{dict}''')
+    content = Attribute('content', ':type: C{str}')
+    headers = Attribute('headers', ':type: C{dict}')
 
 
 class IEncoder(Interface):

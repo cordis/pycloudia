@@ -1,14 +1,18 @@
-class HEADER(object):
-    ACTIVITY = 'X-Activity'
-    RESOURCE = 'X-Resource'
-    FACADE_ID = 'X-Facade-Id'
-    CLIENT_ID = 'X-Client-Id'
+class ACTIVITY(object):
+    NAME = 'clients'
 
 
-class RESOURCE(object):
+class COMMAND(object):
     CREATE = 'create'
     DELETE = 'delete'
 
 
-class ACTIVITY(object):
-    NAME = 'clients'
+class SOURCE(object):
+    EXTERNAL = 'external'
+    INTERNAL = 'internal'
+
+
+class HEADER(object):
+    SOURCE = 'X-Source'
+    COMMAND = 'X-Command'
+    CLIENT_ID = 'X-Client-Id'

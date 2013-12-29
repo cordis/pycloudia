@@ -1,7 +1,7 @@
 from zope.interface import implementer
 
 from pycloudia.activities.clients.consts import HEADER
-from pycloudia.activities.facade.interfaces import IClientDirector
+from pycloudia.activities.facades.interfaces import IClientDirector
 
 
 @implementer(IClientDirector)
