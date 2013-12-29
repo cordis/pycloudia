@@ -37,7 +37,7 @@ class ProtocolServerFactory(Factory):
 
     def __init__(self, director):
         """
-        :type director: C{pycloudia.activities.facades.interfaces.IClientDirector}
+        :type director: L{pycloudia.activities.facades.interfaces.IClientDirector}
         """
         self.director = director
 

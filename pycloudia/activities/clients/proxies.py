@@ -22,34 +22,37 @@ class RequestDeleteSchema(Schema):
 class ClientProxy(object):
     package_factory = None
 
-    def __init__(self, broker):
-        self.broker = broker
+    def __init__(self, sender):
+        """
+        :type sender: L{pycloudia.cloud.interfaces.ISender}
+        """
+        self.sender = sender
 
     def create_activity(self, client_id, facade_id):
         request = RequestCreateSchema().encode(BaseBean(client_id=client_id, facade_id=facade_id))
         package = self.package_factory(request, {
             HEADER.COMMAND: COMMAND.CREATE,
         })
-        self.broker.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
+        self.sender.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
 
     def delete_activity(self, client_id, reason=None):
         request = RequestDeleteSchema().encode(BaseBean(client_id=client_id, reason=reason))
         package = self.package_factory(request, {
             HEADER.COMMAND: COMMAND.DELETE,
         })
-        self.broker.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
+        self.sender.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
 
     def process_incoming_package(self, client_id, package):
         package.headers[HEADER.SOURCE] = SOURCE.EXTERNAL
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.broker.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
+        self.sender.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
 
 
 @implementer(IPackageProcessor)
 class ServerProxy(object):
     def __init__(self, service):
         """
-        :type service: C{pycloudia.activities.clients.interfaces.IService}
+        :type service: L{pycloudia.activities.clients.interfaces.IService}
         """
         self.service = service
 

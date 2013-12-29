@@ -1,75 +1,68 @@
-from pysigslot import Signal
+from zope.interface import implementer
 
-from pycloudia.packages import IPackageEncoder
-from pycloudia.packages import IPackageDecoder
+from pycloudia.cloud.interfaces import IRunner
 
 
+@implementer(IRunner)
 class Runner(object):
     logger = None
-    decisive_header = None
-    package_encoder = IPackageEncoder
-    package_decoder = IPackageDecoder
-    mapper_factory = None
+    mapper = None
+    broker = None
 
     def __init__(self):
         self.incoming_stream = None
         self.outgoing_stream_map = {}
-        self.on_package = Signal()
-        self.mapper = self.mapper_factory()
 
     def attach_incoming_stream(self, stream):
         if self.incoming_stream is not None:
             raise KeyError('Incoming stream {0} already attached'.format(self.incoming_stream.identity))
         self.incoming_stream = stream
-        self.incoming_stream.message_received.connect(self._read_message)
-
-    def _read_message(self, message):
-        try:
-            package = self.package_decoder.decode(message)
-            decisive = package.headers[self.decisive_header]
-        except (ValueError, KeyError) as e:
-            self.logger.exception(e)
-        else:
-            self._process_package(decisive, package)
+        self.incoming_stream.message_received.connect(self.broker.read_message)
 
     def attach_outgoing_stream(self, stream):
-        pass
+        self.outgoing_stream_map[stream.identity] = stream
+        changes = self.mapper.attach(stream.identity)
+        self._process_slot_changes(changes)
 
     def detach_outgoing_stream(self, stream):
-        pass
+        del self.outgoing_stream_map[stream.identity]
+        changes = self.mapper.detach(stream.identity)
+        self._process_slot_changes(changes)
 
-    def send_package(self, package):
-        decisive = package.headers[self.decisive_header]
-        self._process_package(decisive, package)
+    def _process_slot_changes(self, changes):
+        """
+        @TODO: Scalability and Fault-tolerance are handled right here!
+        """
+        for oldSlot, newSlot in changes:
+            pass
 
-    def _process_package(self, decisive, package):
-        if not self.is_outgoing(decisive):
-            self.on_package.emit(package)
+    def send_message(self, identity, message):
+        if self.is_outgoing(identity):
+            stream = self.outgoing_stream_map[identity]
+            message = stream.encode_message_string(message)
+            stream.send_message(message)
         else:
-            self._send_package(decisive, package)
+            self.broker.read_message(message)
 
-    def is_outgoing(self, decisive):
-        return not decisive
+    def is_outgoing(self, identity):
+        return identity != self.incoming_stream.identity
 
-    def _send_package(self, decisive, package):
-        stream = self._select_stream(decisive)
-        message = self.package_encoder.encode(package)
-        message = stream.encode_message_string(message)
-        stream.send_message(message)
+    def get_identity_by_decisive(self, decisive, activity):
+        groups = self._get_groups_by_activity(activity)
+        return self.mapper.get_item_by_decisive(decisive, groups)
 
-    def _select_stream(self, decisive):
-        raise NotImplementedError(decisive)
+    def _get_groups_by_activity(self, activity):
+        return None
 
 
 class RunnerFactory(object):
     logger = None
-    decisive_header = None
-    package_encoder = IPackageEncoder
-    package_decoder = IPackageDecoder
+    mapper_factory = None
+    broker_factory = None
 
     def __call__(self):
         instance = Runner()
         instance.logger = self.logger
-        instance.package_encoder = self.package_encoder
-        instance.package_decoder = self.package_decoder
+        instance.mapper = self.mapper_factory()
+        instance.broker = self.broker_factory(instance)
         return instance

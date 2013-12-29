@@ -48,7 +48,7 @@ class ReactorAdapter(object):
         :param func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
-        :rtype: C{pycloudia.utils.defer.Deferred}
+        :rtype: L{pycloudia.utils.defer.Deferred}
         """
         return self.call_later(0, func, *args, **kwargs)
 
@@ -58,7 +58,7 @@ class ReactorAdapter(object):
         :param func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
-        :rtype: C{pycloudia.utils.defer.Deferred}
+        :rtype: L{pycloudia.utils.defer.Deferred}
         """
         def cancel_deferred(_):
             delayed_call.cancel()

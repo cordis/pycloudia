@@ -1,6 +1,9 @@
-from pycloudia.cloud.interfaces import ISequenceSpread, ISortedSet
+from zope.interface import implementer
+
+from pycloudia.cloud.interfaces import ISequenceSpread, ISortedSet, IMapper
 
 
+@implementer(IMapper)
 class Mapper(object):
     sorted_set = ISortedSet
     spread = ISequenceSpread
@@ -30,6 +33,10 @@ class Mapper(object):
                 continue
             yield self.slot_map[slot], item
             self.slot_map[slot] = item
+
+    def get_item_by_decisive(self, decisive, groups=None):
+        assert groups is None
+
 
 
 class MapperFactory(object):

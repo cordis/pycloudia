@@ -11,7 +11,7 @@ class IEncoder(Interface):
         """
         :type package: C{IPackage}
         :rtype: C{str}
-        :raises: C{pycloudia.packages.exceptions.InvalidEncodingError}
+        :raise: L{pycloudia.packages.exceptions.InvalidEncodingError}
         """
 
 
@@ -20,5 +20,5 @@ class IDecoder(Interface):
         """
         :type message: C{str}
         :rtype: C{IPackage}
-        :raises: C{pycloudia.packages.exceptions.InvalidFormatError}
+        :raise: L{pycloudia.packages.exceptions.InvalidFormatError}
         """

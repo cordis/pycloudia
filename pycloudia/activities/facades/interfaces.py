@@ -6,14 +6,14 @@ class IService(Interface):
         """
         :type facade_id: C{str}
         :type client_id: C{str}
-        :type package: C{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
 
 class IListener(Interface):
     def start():
         """
-        :raises C{pycloudia.activities.facades.exceptions.ListenFailedError}:
+        :raises L{pycloudia.activities.facades.exceptions.ListenFailedError}:
         """
 
 
@@ -56,5 +56,5 @@ class IClientDirector(Interface):
 
     def send_package(package):
         """
-        :type package: C{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
         """

@@ -7,23 +7,23 @@ from pycloudia.cloud.interfaces import IPackageProcessor
 
 @implementer(IService)
 class ClientProxy(object):
-    def __init__(self, broker):
+    def __init__(self, sender):
         """
-        :type broker: C{pycloudia.cloud.interfaces.IBroker}
+        :type sender: L{pycloudia.cloud.interfaces.ISender}
         """
-        self.broker = broker
+        self.sender = sender
 
     def process_outgoing_package(self, facade_id, client_id, package):
         package.headers[HEADER.FACADE_ID] = facade_id
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.broker.send_package_by_identity(facade_id, ACTIVITY.NAME, package)
+        self.sender.send_package_by_identity(facade_id, ACTIVITY.NAME, package)
 
 
 @implementer(IPackageProcessor)
 class ServerProxy(object):
     def __init__(self, service):
         """
-        :type service: C{pycloudia.activities.facades.interfaces.IService}
+        :type service: L{pycloudia.activities.facades.interfaces.IService}
         """
         self.service = service
 

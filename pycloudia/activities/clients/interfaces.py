@@ -17,11 +17,11 @@ class IService(Interface):
     def process_incoming_package(client_id, package):
         """
         :type client_id: C{str}
-        :type package: C{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
     def process_outgoing_package(client_id, package):
         """
         :type client_id: C{str}
-        :type package: C{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
         """

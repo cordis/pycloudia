@@ -26,7 +26,7 @@ class IReactor(Interface):
         :type func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
-        :rtype: C{pycloudia.utils.defer.Deferred}
+        :rtype: L{pycloudia.utils.defer.Deferred}
         """
 
     def call_later(seconds, func, *args, **kwargs):
@@ -35,7 +35,7 @@ class IReactor(Interface):
         :type func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
-        :rtype: C{pycloudia.utils.defer.Deferred}
+        :rtype: L{pycloudia.utils.defer.Deferred}
         """
 
     def create_looping_call(func, *args, **kwargs):
