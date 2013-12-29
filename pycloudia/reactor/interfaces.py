@@ -1,7 +1,7 @@
 from zope.interface import Interface
 
 
-class ReactorInterface(Interface):
+class IReactor(Interface):
     def time():
         """
         :rtype: C{int}

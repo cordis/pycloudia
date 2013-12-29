@@ -5,7 +5,8 @@ from pycloudia.activities.facade.interfaces import IProtocol, IProtocolFactory
 
 @implementer(IProtocol)
 class Protocol(object):
-    pass
+    def __init__(self, server):
+        pass
 
 
 @implementer(IProtocolFactory)

@@ -43,11 +43,11 @@ class BaseStream(object):
         return zmq_stream
 
     def start(self, host, port):
-        self.zmq_stream.on_recv(self.read_message)
+        self.zmq_stream.on_recv(self._read_message)
         self.zmq_stream_start_strategy.start_tcp(self, host, port)
 
     def start_on_random_port(self, host, min_port=49152, max_port=65536, max_tries=100):
-        self.zmq_stream.on_recv(self.read_message)
+        self.zmq_stream.on_recv(self._read_message)
         return self.zmq_stream_start_strategy.start_tcp_on_random_port(
             self.zmq_stream,
             host,
@@ -56,7 +56,7 @@ class BaseStream(object):
             max_tries
         )
 
-    def read_message(self, message_list):
+    def _read_message(self, message_list):
         self.zmq_stream_read_strategy.read_message(self, message_list)
 
     def send_message(self, message):

@@ -1,19 +1,43 @@
-class Activity(object):
-    stream_factory = None
-    director_factory = None
+from zope.interface import implementer
 
-    def __init__(self, host, identity):
-        self.host = host
-        self.identity = identity
-        self.director = None
+from pycloudia.uitls.defer import maybe_deferred
+from pycloudia.activities.interfaces import IActivity, IActivityFactory
+
+
+@implementer(IActivity)
+class Activity(object):
+    director = None
+    protocol = None
+    listener = None
 
     def initialize(self):
-        self.director = self.director_factory(self.identity)
+        pass
 
     def start(self):
-        router = self.stream_factory.create_router_stream()
-        router.message_received.connect(self._read_external_message)
-        router.start_on_random_port(self.host)
+        self.listener.start_on_random_port()
 
-    def _read_external_message(self, message):
-        pass
+    @maybe_deferred
+    def process_outgoing_package(self, client_id, package):
+        return self.director.process_outgoing_package(client_id, package)
+
+
+@implementer(IActivityFactory)
+class ActivityFactory(object):
+    stick_to_group('facade')
+
+    director_factory = None
+    protocol_factory = None
+    listener_factory = None
+
+    def __init__(self, host):
+        self.host = host
+        self.director = None
+        self.protocol = None
+        self.listener = None
+
+    def __call__(self, identity):
+        instance = Activity()
+        instance.director = self.director_factory(identity)
+        instance.protocol = self.protocol_factory(self.director)
+        instance.listener = self.listener_factory(self.protocol, self.host)
+        return instance

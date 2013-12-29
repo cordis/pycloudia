@@ -1,9 +1,9 @@
-from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.reactor.interfaces import IReactor
 
 
 class Device(object):
     logger = None
-    reactor = ReactorInterface
+    reactor = IReactor
     explorer = None
 
     def initialize(self):

@@ -1,16 +1,16 @@
 from zope.interface import implementer
 
-from pycloudia.reactor.interfaces import ReactorInterface, LoopingCallInterface
+from pycloudia.reactor.interfaces import IReactor, LoopingCallInterface
 from pycloudia.uitls.defer import Deferred
 
 
-@implementer(ReactorInterface)
+@implementer(IReactor)
 class ReactorAdapter(object):
 
     @classmethod
     def create_instance(cls):
         """
-        :rtype: C{ReactorInterface}
+        :rtype: C{IReactor}
         """
         from twisted.internet import reactor
         return cls(reactor)

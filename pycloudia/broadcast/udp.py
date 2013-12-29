@@ -1,10 +1,10 @@
 from pysigslot import Signal
 
-from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.reactor.interfaces import IReactor
 
 
 class UdpMulticast(object):
-    reactor = ReactorInterface
+    reactor = IReactor
 
     def __init__(self, host, port):
         self.host = host

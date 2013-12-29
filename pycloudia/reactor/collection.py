@@ -1,12 +1,12 @@
 from collections import deque
 
 from pycloudia.uitls.defer import Deferred, inline_callbacks
-from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.reactor.interfaces import IReactor
 
 
 class ReactorCollection(object):
     def __init__(self, reactor, count=50):
-        assert ReactorInterface.implementedBy(reactor)
+        assert IReactor.implementedBy(reactor)
         self.reactor = reactor
         self.count = count
         self.state = InitialState(self)

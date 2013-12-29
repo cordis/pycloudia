@@ -1,6 +1,6 @@
 from uuid import uuid1
 
-from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.reactor.interfaces import IReactor
 from pycloudia.uitls.defer import inline_callbacks
 from pycloudia.explorer.runner import Runner
 
@@ -8,7 +8,7 @@ from pycloudia.explorer.runner import Runner
 class Device(object):
     identity_factory = uuid1
 
-    reactor = ReactorInterface()
+    reactor = IReactor()
     console = None
 
     def __init__(self, address, group=None, roles=None):

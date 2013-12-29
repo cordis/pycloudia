@@ -1,6 +1,5 @@
 from zope.interface import implementer
 
-from pycloudia.streams.zmq_impl.messages import Message
 from pycloudia.streams.zmq_impl.interfaces import *
 
 

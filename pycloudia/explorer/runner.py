@@ -1,11 +1,11 @@
 from pysigslot import Signal
 
-from pycloudia.reactor.interfaces import ReactorInterface
+from pycloudia.reactor.interfaces import IReactor
 from pycloudia.explorer.beans import Peer
 
 
 class Runner(object):
-    reactor = ReactorInterface
+    reactor = IReactor
     logger = None
     protocol = None
     broadcast = None
@@ -102,7 +102,7 @@ class Runner(object):
 
 class RunnerFactory(object):
     logger = None
-    reactor = ReactorInterface
+    reactor = IReactor
     protocol = None
     stream_factory = None
     broadcast_factory = None
