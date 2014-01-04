@@ -2,7 +2,7 @@ from zope.interface import implementer
 
 from pyschema import Schema, Str
 
-from pycloudia.cloud.interfaces import IPackageProcessor
+from pycloudia.cloud.interfaces import IServiceInvoker, IServiceAdapter
 from pycloudia.activities.clients.interfaces import IService
 from pycloudia.activities.clients.consts import HEADER, COMMAND, ACTIVITY, SOURCE
 from pycloudia.uitls.beans import BaseBean
@@ -18,7 +18,7 @@ class RequestDeleteSchema(Schema):
     reason = Str()
 
 
-@implementer(IService)
+@implementer(IService, IServiceAdapter)
 class ClientProxy(object):
     package_factory = None
 
@@ -42,13 +42,19 @@ class ClientProxy(object):
         })
         self.sender.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
 
+    def suspend_activity(self, client_id):
+        raise NotImplementedError()
+
+    def restore_activity(self, client_id, facade_id):
+        raise NotImplementedError()
+
     def process_incoming_package(self, client_id, package):
         package.headers[HEADER.SOURCE] = SOURCE.EXTERNAL
         package.headers[HEADER.CLIENT_ID] = client_id
         self.sender.send_package_by_decisive(client_id, ACTIVITY.NAME, package)
 
 
-@implementer(IPackageProcessor)
+@implementer(IServiceInvoker)
 class ServerProxy(object):
     def __init__(self, service):
         """

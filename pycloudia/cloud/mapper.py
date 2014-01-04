@@ -34,7 +34,7 @@ class Mapper(object):
             yield self.slot_map[slot], item
             self.slot_map[slot] = item
 
-    def get_item_by_decisive(self, decisive, groups=None):
+    def get_item_by_decisive(self, decisive):
         assert groups is None
 
 

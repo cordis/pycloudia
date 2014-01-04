@@ -2,7 +2,7 @@ from zope.interface import implementer
 
 from pycloudia.activities.facades.interfaces import IService
 from pycloudia.activities.facades.consts import ACTIVITY, HEADER
-from pycloudia.cloud.interfaces import IPackageProcessor
+from pycloudia.cloud.interfaces import IServiceInvoker
 
 
 @implementer(IService)
@@ -19,7 +19,7 @@ class ClientProxy(object):
         self.sender.send_package_by_identity(facade_id, ACTIVITY.NAME, package)
 
 
-@implementer(IPackageProcessor)
+@implementer(IServiceInvoker)
 class ServerProxy(object):
     def __init__(self, service):
         """

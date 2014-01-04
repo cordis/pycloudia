@@ -39,14 +39,43 @@ class IReader(Interface):
 
 
 class IMapper(Interface):
-    def get_item_by_hash(hash, groups=None):
+    def attach(item):
         """
-        :type decisive: C{str}
-        :type groups: C{list} of C{str} or C{None}
+        :type item: C{str}
+        """
+
+    def detach(item):
+        """
+        :type item: C{str}
+        """
+
+    def balance(hashable_list):
+        """
+        :type hashable_list: C{list} of C{Hashable}
+        :rtype: C{list} of C{tuple} consisted of (C{Hashable} hashable, C{str} item_source, C{str} item_target)
+        """
+
+    def get_item_by_hashable(hashable):
+        """
+        :type hashable: C{Hashable}
         """
 
 
-class IPackageProcessor(Interface):
+class IServiceAdapter(Interface):
+    def create_activity(*args):
+        pass
+
+    def remove_activity(*args):
+        pass
+
+    def suspend_activity(*args):
+        pass
+
+    def recover_activity(*args):
+        pass
+
+
+class IServiceInvoker(Interface):
     def process_package(package):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
