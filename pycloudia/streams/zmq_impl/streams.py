@@ -5,6 +5,7 @@ from zmq.sugar import constants as zmq_constants
 from pysigslot import Signal
 
 from pycloudia.streams.zmq_impl.messages import Message
+from pycloudia.streams.zmq_impl.interfaces import *
 from pycloudia.streams.zmq_impl.strategies import *
 
 
@@ -25,9 +26,9 @@ class BaseStream(object):
     zmq_socket_factory = ZmqSocket
     zmq_stream_factory = ZmqStream
     zmq_socket_type = NotImplemented
-    zmq_stream_start_strategy = NotImplemented
-    zmq_stream_read_strategy = NotImplemented
-    zmq_stream_send_strategy = NotImplemented
+    zmq_stream_start_strategy = IStartStreamStrategy
+    zmq_stream_read_strategy = IReadStreamMessageStrategy
+    zmq_stream_send_strategy = ISendStreamMessageStrategy
 
     @classmethod
     def create_instance(cls, zmq_context, zmq_io_loop, *args, **kwargs):

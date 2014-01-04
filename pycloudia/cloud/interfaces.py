@@ -52,7 +52,8 @@ class IMapper(Interface):
     def balance(hashable_list):
         """
         :type hashable_list: C{list} of C{Hashable}
-        :rtype: C{list} of C{tuple} consisted of (C{Hashable} hashable, C{str} item_source, C{str} item_target)
+        :return: List of (hashable, item_source, item_target)
+        :rtype: C{list} of (C{Hashable}, C{str}, C{str})
         """
 
     def get_item_by_hashable(hashable):

@@ -1,5 +1,3 @@
-from zope.interface import implementer
-
 from pycloudia.streams.zmq_impl.interfaces import *
 
 
@@ -29,8 +27,7 @@ class BaseStartStrategy(object):
         return self.ADDRESS_TCP_HOST_PORT.format(host, port)
 
 
-@implementer(IStartStreamStrategy)
-class ConnectStartStrategy(BaseStartStrategy):
+class ConnectStartStrategy(BaseStartStrategy, IStartStreamStrategy):
     def start_tcp(self, stream, host, port):
         address = self._create_tcp_host_port_address(host, port)
         stream.connect(address)
@@ -39,8 +36,7 @@ class ConnectStartStrategy(BaseStartStrategy):
         raise NotImplementedError('Unable to connect to random tcp port')
 
 
-@implementer(IStartStreamStrategy)
-class BindStartStrategy(BaseStartStrategy):
+class BindStartStrategy(BaseStartStrategy, IStartStreamStrategy):
     def start_tcp(self, stream, host, port):
         address = self._create_tcp_host_port_address(host, port)
         stream.bind(address)
@@ -50,69 +46,57 @@ class BindStartStrategy(BaseStartStrategy):
         return stream.bind_to_random_port(address, *args, **kwargs)
 
 
-@implementer(IReadStreamMessageStrategy)
-class RejectReadMessageStrategy(object):
+class RejectReadMessageStrategy(IReadStreamMessageStrategy):
     def read_message(self, stream, message_list):
         raise NotImplementedError('Unable to read write-only stream message')
 
 
-@implementer(IReadStreamMessageStrategy)
-class SimpleReadMessageStrategy(object):
-    @staticmethod
-    def read_message(stream, message_list):
+class SimpleReadMessageStrategy(IReadStreamMessageStrategy):
+    def read_message(self, stream, message_list):
         assert len(message_list) == 1
         message = stream.zmq_message_factory(message_list[0])
         stream.message_received.emit(message)
 
 
-@implementer(IReadStreamMessageStrategy)
-class SignedReadMessageStrategy(object):
-    @staticmethod
-    def read_message(stream, message_list):
+class SignedReadMessageStrategy(IReadStreamMessageStrategy):
+    def read_message(self, stream, message_list):
         assert len(message_list) > 1
         message = stream.zmq_message_factory(message_list[-1], peer=message_list[0], hops=message_list[1:-1])
         stream.message_received.emit(message)
 
 
-@implementer(IReadStreamMessageStrategy)
-class DealerReadMessageStrategy(object):
-    @staticmethod
-    def read_message(stream, message_list):
+class DealerReadMessageStrategy(IReadStreamMessageStrategy):
+    def read_message(self, stream, message_list):
         assert len(message_list) > 0
         message = stream.zmq_message_factory(message_list[-1], peer=stream.identity, hops=message_list[:-1])
         stream.message_received.emit(message)
 
 
-@implementer(ISendStreamMessageStrategy)
-class RejectSendMessageStrategy(object):
+class RejectSendMessageStrategy(ISendStreamMessageStrategy):
     @staticmethod
-    def send_message(stream, message):
+    def send_message(self, stream, message):
         raise NotImplementedError('Unable to send message to read-only stream')
 
 
-@implementer(ISendStreamMessageStrategy)
-class SimpleSendMessageStrategy(object):
+class SimpleSendMessageStrategy(ISendStreamMessageStrategy):
     @staticmethod
-    def send_message(stream, message):
+    def send_message(self, stream, message):
         stream.zmq_stream.send(message)
 
 
-@implementer(ISendStreamMessageStrategy)
-class DealerSendMessageStrategy(object):
+class DealerSendMessageStrategy(ISendStreamMessageStrategy):
     @staticmethod
-    def send_message(stream, message):
+    def send_message(self, stream, message):
         stream.zmq_stream.send_multipart(message.hops + [message])
 
 
-@implementer(ISendStreamMessageStrategy)
-class SignedSendMessageStrategy(object):
+class SignedSendMessageStrategy(ISendStreamMessageStrategy):
     @staticmethod
-    def send_message(stream, message):
+    def send_message(self, stream, message):
         stream.zmq_stream.send_multipart([stream.identity] + message.hops + [message])
 
 
-@implementer(ISendStreamMessageStrategy)
-class RouterSendMessageStrategy(object):
+class RouterSendMessageStrategy(ISendStreamMessageStrategy):
     @staticmethod
-    def send_message(stream, message):
+    def send_message(self, stream, message):
         stream.zmq_stream.send_multipart([message.peer] + message.hops + [message])
