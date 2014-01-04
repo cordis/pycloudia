@@ -3,15 +3,15 @@ from pycloudia.activities.clients.exceptions import ActivityNotFoundError, Heade
 
 
 class Router(object):
-    activity_map = None
+    service_map = None
 
     def route_package(self, package):
-        activity = self._get_header(package, HEADER.ACTIVITY)
-        resource = self._get_header(package, HEADER.COMMAND)
+        service = self._get_header(package, HEADER.SERVICE)
+        command = self._get_header(package, HEADER.COMMAND)
         try:
-            return self.activity_map[activity].route_package(resource, package)
+            return self.service_map[service].route_package(command, package)
         except KeyError:
-            raise ActivityNotFoundError(package, activity)
+            raise ActivityNotFoundError(package, service)
 
     @staticmethod
     def _get_header(package, name):

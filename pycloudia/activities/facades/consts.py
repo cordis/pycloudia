@@ -1,8 +1,8 @@
-class ACTIVITY(object):
+class SERVICE(object):
     NAME = 'facades'
 
 
 class HEADER(object):
-    ACTIVITY = 'X-Activity'
-    CLIENT_ID = 'X-Client-Id'
-    FACADE_ID = 'X-Facade-Id'
+    SERVICE = 'X-Facades-Service'
+    CLIENT_ID = 'X-Facades-Client-Id'
+    FACADE_ID = 'X-Facades-Id'

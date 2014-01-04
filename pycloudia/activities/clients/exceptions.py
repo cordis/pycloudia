@@ -7,3 +7,7 @@ class ActivityNotFoundError(PackageError):
 
 class HeaderNotFoundError(PackageError):
     pass
+
+
+class UserIdNotFoundError(Exception):
+    pass

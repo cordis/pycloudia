@@ -2,26 +2,26 @@ from zope.interface import Interface
 
 
 class ISender(Interface):
-    def send_package_by_decisive(decisive, activity, package):
+    def send_package_by_decisive(decisive, service, package):
         """
         :type decisive: C{str}
-        :type activity: C{str}
+        :type service: C{str}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
-    def send_package_by_identity(identity, activity, package):
+    def send_package_by_identity(identity, service, package):
         """
         :type identity: C{str}
-        :type activity: C{str}
+        :type service: C{str}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
 
 class IRunner(Interface):
-    def get_identity_by_decisive(decisive, activity):
+    def get_identity_by_decisive(decisive, service):
         """
         :type decisive: C{str}
-        :type activity: C{str}
+        :type service: C{str}
         """
 
     def send_message(identity, message):

@@ -1,8 +1,9 @@
-class ACTIVITY(object):
+class SERVICE(object):
     NAME = 'clients'
 
 
 class COMMAND(object):
+    AUTHENTICATE = 'authorize'
     CREATE = 'create'
     DELETE = 'delete'
 
@@ -13,6 +14,8 @@ class SOURCE(object):
 
 
 class HEADER(object):
-    SOURCE = 'X-Source'
-    COMMAND = 'X-Command'
-    CLIENT_ID = 'X-Client-Id'
+    SOURCE = 'X-Clients-Source'
+    USER_ID = 'X-Clients-User-Id'
+    SERVICE = 'X-Clients-Service'
+    COMMAND = 'X-Clients-Command'
+    CLIENT_ID = 'X-Clients-Client-Id'

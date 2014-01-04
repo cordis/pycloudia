@@ -25,3 +25,12 @@ class IService(Interface):
         :type client_id: C{str}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
+
+
+class IDao(Interface):
+    def store_user_id(client_id, user_id):
+        """
+        :type client_id: C{str}
+        :type user_id: C{str}
+        :rtype: L{Deferred}
+        """
