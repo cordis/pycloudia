@@ -105,6 +105,7 @@ class IServiceInvoker(object):
     def process_package(self, package):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
+        :rtype: L{Deferred} of L{pycloudia.packages.interfaces.IPackage}
         """
 
 
