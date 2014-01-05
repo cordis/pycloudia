@@ -1,10 +1,7 @@
-from zope.interface import implementer
-
 from pycloudia.cloud.interfaces import IRunner
 
 
-@implementer(IRunner)
-class Runner(object):
+class Runner(object, IRunner):
     logger = None
     mapper = None
     broker = None

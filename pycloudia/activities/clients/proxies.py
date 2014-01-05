@@ -1,11 +1,9 @@
-from zope.interface import implementer
-
 from pyschema import Schema, Str
 
 from pycloudia.cloud.interfaces import IServiceInvoker, IServiceAdapter
 from pycloudia.activities.clients.interfaces import IService
 from pycloudia.activities.clients.consts import HEADER, COMMAND, SERVICE, SOURCE
-from pycloudia.uitls.beans import BaseBean
+from pycloudia.uitls.beans import DataBean
 
 
 class RequestCreateSchema(Schema):
@@ -18,10 +16,7 @@ class RequestDeleteSchema(Schema):
     reason = Str()
 
 
-@implementer(IService, IServiceAdapter)
-class ClientProxy(object):
-    package_factory = None
-
+class ClientProxy(object, IService, IServiceAdapter):
     def __init__(self, sender):
         """
         :type sender: L{pycloudia.cloud.interfaces.ISender}
@@ -29,15 +24,15 @@ class ClientProxy(object):
         self.sender = sender
 
     def create_activity(self, client_id, facade_id):
-        request = RequestCreateSchema().encode(BaseBean(client_id=client_id, facade_id=facade_id))
-        package = self.package_factory(request, {
+        request = RequestCreateSchema().encode(DataBean(client_id=client_id, facade_id=facade_id))
+        package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.CREATE,
         })
         self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
 
     def delete_activity(self, client_id, reason=None):
-        request = RequestDeleteSchema().encode(BaseBean(client_id=client_id, reason=reason))
-        package = self.package_factory(request, {
+        request = RequestDeleteSchema().encode(DataBean(client_id=client_id, reason=reason))
+        package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.DELETE,
         })
         self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
@@ -59,8 +54,7 @@ class ClientProxy(object):
         self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
 
 
-@implementer(IServiceInvoker)
-class ServerProxy(object):
+class ServerProxy(object, IServiceInvoker):
     def __init__(self, service):
         """
         :type service: L{pycloudia.activities.clients.interfaces.IService}

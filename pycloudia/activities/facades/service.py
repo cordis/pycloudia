@@ -1,10 +1,7 @@
-from zope.interface import implementer
-
 from pycloudia.activities.facades.interfaces import IService
 
 
-@implementer(IService)
-class Service(object):
+class Service(object, IService):
     def __init__(self, activity):
         self.activity = activity
 

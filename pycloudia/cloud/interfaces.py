@@ -1,15 +1,26 @@
-from zope.interface import Interface
+from abc import ABCMeta, abstractmethod
 
 
-class ISender(Interface):
-    def send_package_by_decisive(decisive, service, package):
+class ISender(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def package_factory(self, content, headers=None):
+        """
+        :type content: C{dict}
+        :type headers: C{None} or C{dict}
+        """
+
+    @abstractmethod
+    def send_package_by_decisive(self, decisive, service, package):
         """
         :type decisive: C{str}
         :type service: C{str}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
-    def send_package_by_identity(identity, service, package):
+    @abstractmethod
+    def send_package_by_identity(self, identity, service, package):
         """
         :type identity: C{str}
         :type service: C{str}
@@ -17,86 +28,107 @@ class ISender(Interface):
         """
 
 
-class IRunner(Interface):
-    def get_identity_by_decisive(decisive, service):
+class IRunner(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def get_identity_by_decisive(self, decisive, service):
         """
         :type decisive: C{str}
         :type service: C{str}
         """
 
-    def send_message(identity, message):
+    @abstractmethod
+    def send_message(self, identity, message):
         """
         :type identity: C{str}
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type message: C{str}
         """
 
 
-class IReader(Interface):
-    def read_message(message):
+class IReader(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def read_message(self, message):
         """
         :type message: C{str}
         """
 
 
-class IMapper(Interface):
-    def attach(item):
+class IMapper(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def attach(self, item):
         """
         :type item: C{str}
         """
 
-    def detach(item):
+    @abstractmethod
+    def detach(self, item):
         """
         :type item: C{str}
         """
 
-    def balance(hashable_list):
+    @abstractmethod
+    def balance(self, hashable_list):
         """
         :type hashable_list: C{list} of C{Hashable}
         :return: List of (hashable, item_source, item_target)
         :rtype: C{list} of (C{Hashable}, C{str}, C{str})
         """
 
-    def get_item_by_hashable(hashable):
+    @abstractmethod
+    def get_item_by_hashable(self, hashable):
         """
         :type hashable: C{Hashable}
         """
 
 
-class IServiceAdapter(Interface):
-    def create_activity(*args):
+class IServiceAdapter(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def suspend_activity(self, *args):
         pass
 
-    def remove_activity(*args):
-        pass
-
-    def suspend_activity(*args):
-        pass
-
-    def recover_activity(*args):
+    @abstractmethod
+    def recover_activity(self, *args):
         pass
 
 
-class IServiceInvoker(Interface):
-    def process_package(package):
+class IServiceInvoker(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def process_package(self, package):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
 
-class ISortedSet(Interface):
-    def insert(item):
+class ISortedSet(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def insert(self, item):
         """
         :type item: C{object}
         """
 
-    def remove(item):
+    @abstractmethod
+    def remove(self, item):
         """
         :type item: C{object}
         """
 
 
-class ISequenceSpread(Interface):
-    def spread(sequence, capacity):
+class ISequenceSpread(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def spread(self, sequence, capacity):
         """
         :type sequence: C{collections.Sequence}
         :type capacity: C{int}

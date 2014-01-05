@@ -1,27 +1,33 @@
-from zope.interface import Interface
+from abc import ABCMeta, abstractmethod
 
 
-class IReactor(Interface):
-    def time():
+class IReactor(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def time(self):
         """
         :rtype: C{int}
         """
 
-    def register_for_shutdown(func, *args, **kwargs):
+    @abstractmethod
+    def register_for_shutdown(self, func, *args, **kwargs):
         """
         :type func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
         """
 
-    def call_when_running(func, *args, **kwargs):
+    @abstractmethod
+    def call_when_running(self, func, *args, **kwargs):
         """
         :type func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
         """
 
-    def call(func, *args, **kwargs):
+    @abstractmethod
+    def call(self, func, *args, **kwargs):
         """
         :type func: C{callable}
         :param *args: Passed to C{func}
@@ -29,7 +35,8 @@ class IReactor(Interface):
         :rtype: L{pycloudia.utils.defer.Deferred}
         """
 
-    def call_later(seconds, func, *args, **kwargs):
+    @abstractmethod
+    def call_later(self, seconds, func, *args, **kwargs):
         """
         :type seconds: C{int}
         :type func: C{callable}
@@ -38,15 +45,17 @@ class IReactor(Interface):
         :rtype: L{pycloudia.utils.defer.Deferred}
         """
 
-    def create_looping_call(func, *args, **kwargs):
+    @abstractmethod
+    def create_looping_call(self, func, *args, **kwargs):
         """
         :type func: C{callable}
         :param *args: Passed to C{func}
         :param **kwargs: Passed to C{func}
-        :rtype: C{LoopingCallInterface}
+        :rtype: C{ILoopingCall}
         """
 
-    def call_feature(name, *args, **kwargs):
+    @abstractmethod
+    def call_feature(self, name, *args, **kwargs):
         """
         :type name: C{str}
         :param *args: Passed to feature
@@ -55,15 +64,20 @@ class IReactor(Interface):
         """
 
 
-class LoopingCallInterface(Interface):
-    def start(interval, now=True):
+class ILoopingCall(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def start(self, interval, now=True):
         """
         :type interval: int
         :type now: bool
         """
 
-    def stop():
+    @abstractmethod
+    def stop(self):
         pass
 
-    def reset():
+    @abstractmethod
+    def reset(self):
         pass

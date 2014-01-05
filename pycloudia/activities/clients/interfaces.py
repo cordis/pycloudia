@@ -1,34 +1,43 @@
-from zope.interface import Interface
+from abc import ABCMeta, abstractmethod
 
 
-class IService(Interface):
-    def create_activity(client_id, facade_id):
+class IService(object):
+    __metaclass__ = ABCMeta
+    
+    @abstractmethod
+    def create_activity(self, client_id, facade_id):
         """
         :type client_id: C{str}
         :type facade_id: C{str}
         """
 
-    def delete_activity(client_id, reason=None):
+    @abstractmethod
+    def delete_activity(self, client_id, reason=None):
         """
         :type client_id: C{str}
         :type reason: C{str}
         """
 
-    def process_incoming_package(client_id, package):
+    @abstractmethod
+    def process_incoming_package(self, client_id, package):
         """
         :type client_id: C{str}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
-    def process_outgoing_package(client_id, package):
+    @abstractmethod
+    def process_outgoing_package(self, client_id, package):
         """
         :type client_id: C{str}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
 
-class IDao(Interface):
-    def store_user_id(client_id, user_id):
+class IDao(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def store_user_id(self, client_id, user_id):
         """
         :type client_id: C{str}
         :type user_id: C{str}

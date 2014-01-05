@@ -1,14 +1,10 @@
-from zope.interface import implementer
-
 from pycloudia.activities.facades.interfaces import IProtocol, IProtocolFactory
 
 
-@implementer(IProtocol)
-class Protocol(object):
+class Protocol(object, IProtocol):
     def __init__(self, server):
         pass
 
 
-@implementer(IProtocolFactory)
-class ProtocolFactory(object):
+class ProtocolFactory(object, IProtocolFactory):
     pass

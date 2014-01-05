@@ -1,11 +1,8 @@
-from zope.interface import implementer
-
 from pycloudia.packages.exceptions import InvalidFormatError
 from pycloudia.packages.interfaces import IDecoder
 
 
-@implementer(IDecoder)
-class Decoder(object):
+class Decoder(object, IDecoder):
     content_delimiter = None
     headers_delimiter = None
 

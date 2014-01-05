@@ -1,13 +1,10 @@
 from collections import Counter
 from itertools import chain, repeat, izip
 
-from zope.interface import implementer
-
 from pycloudia.cloud.interfaces import ISequenceSpread
 
 
-@implementer(ISequenceSpread)
-class SequenceSpread(object):
+class SequenceSpread(object, ISequenceSpread):
     @staticmethod
     def spread(sequence, capacity):
         sequence_size = len(sequence)

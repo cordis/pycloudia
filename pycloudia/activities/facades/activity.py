@@ -1,11 +1,8 @@
-from zope.interface import implementer
-
 from pycloudia.uitls.defer import maybe_deferred
 from pycloudia.activities.interfaces import IActivity, IActivityFactory
 
 
-@implementer(IActivity)
-class Activity(object):
+class Activity(object, IActivity):
     director = None
     protocol = None
     listener = None
@@ -21,8 +18,7 @@ class Activity(object):
         return self.director.send_package(client_id, package)
 
 
-@implementer(IActivityFactory)
-class ActivityFactory(object):
+class ActivityFactory(object, IActivityFactory):
     stick_to_group('facade')
 
     director_factory = None

@@ -1,5 +1,3 @@
-from zope.interface import implementer
-
 from twisted.protocols.basic import NetstringReceiver
 from twisted.internet.protocol import Factory
 from twisted.internet.protocol import connectionDone
@@ -7,8 +5,7 @@ from twisted.internet.protocol import connectionDone
 from pycloudia.activities.facades.interfaces import IClient
 
 
-@implementer(IClient)
-class Protocol(NetstringReceiver):
+class Protocol(NetstringReceiver, IClient):
     factory = None
     client_id_factory = None
 

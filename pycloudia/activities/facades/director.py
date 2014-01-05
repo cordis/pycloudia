@@ -1,11 +1,8 @@
-from zope.interface import implementer
-
 from pycloudia.activities.clients.consts import HEADER
 from pycloudia.activities.facades.interfaces import IClientDirector
 
 
-@implementer(IClientDirector)
-class Director(object):
+class Director(object, IClientDirector):
     logger = None
     encoder = None
     decoder = None

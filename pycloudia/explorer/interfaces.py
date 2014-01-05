@@ -1,8 +1,29 @@
-from zope.interface import Interface, Attribute
+from abc import ABCMeta, abstractproperty
 
 
-class IAgentConfig(Interface):
-    host = Attribute('host', ':type: C{str}')
-    min_port = Attribute('min_port', ':type: C{int}')
-    max_port = Attribute('max_port', ':type: C{int}')
-    identity = Attribute('identity', ':type: C{str}')
+class IAgentConfig(object):
+    __metaclass__ = ABCMeta
+
+    @abstractproperty
+    def host(self):
+        """
+        :rtype: C{str}
+        """
+
+    @abstractproperty
+    def min_port(self):
+        """
+        :rtype: C{int}
+        """
+
+    @abstractproperty
+    def max_port(self):
+        """
+        :rtype: C{int}
+        """
+
+    @abstractproperty
+    def identity(self):
+        """
+        :rtype: C{str}
+        """

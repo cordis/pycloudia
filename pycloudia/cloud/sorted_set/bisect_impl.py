@@ -1,11 +1,9 @@
-from bisect import bisect_left, bisect_right
-from zope.interface import implementer
+from bisect import bisect_left
 
 from pycloudia.cloud.interfaces import ISortedSet
 
 
-@implementer(ISortedSet)
-class SortedSet(object):
+class SortedSet(object, ISortedSet):
     """
     Inspired by http://code.activestate.com/recipes/577197-sortedcollection/
 

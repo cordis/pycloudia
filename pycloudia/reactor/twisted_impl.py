@@ -1,11 +1,8 @@
-from zope.interface import implementer
-
-from pycloudia.reactor.interfaces import IReactor, LoopingCallInterface
+from pycloudia.reactor.interfaces import IReactor, ILoopingCall
 from pycloudia.uitls.defer import Deferred
 
 
-@implementer(IReactor)
-class ReactorAdapter(object):
+class ReactorAdapter(object, IReactor):
 
     @classmethod
     def create_instance(cls):
@@ -70,7 +67,7 @@ class ReactorAdapter(object):
     def create_looping_call(self, func, *args, **kwargs):
         from twisted.internet.task import LoopingCall
 
-        @implementer(LoopingCallInterface)
+        @implementer(ILoopingCall)
         class LoopingCallAdapter(LoopingCall):
             pass
 

@@ -1,11 +1,8 @@
-from zope.interface import implementer
-
 from pycloudia.activities.clients.consts import SERVICE
 from pycloudia.activities.clients.interfaces import IService
 
 
-@implementer(IService)
-class Service(object):
+class Service(object, IService):
     name = SERVICE.NAME
     activity_factory = None
     activity_registry = None

@@ -1,12 +1,9 @@
-from zope.interface import implementer
-
 from pycloudia.activities.facades.interfaces import IService
 from pycloudia.activities.facades.consts import SERVICE, HEADER
 from pycloudia.cloud.interfaces import IServiceInvoker
 
 
-@implementer(IService)
-class ClientProxy(object):
+class ClientProxy(object, IService):
     def __init__(self, sender):
         """
         :type sender: L{pycloudia.cloud.interfaces.ISender}
@@ -19,8 +16,7 @@ class ClientProxy(object):
         self.sender.send_package_by_identity(facade_id, SERVICE.NAME, package)
 
 
-@implementer(IServiceInvoker)
-class ServerProxy(object):
+class ServerProxy(object, IServiceInvoker):
     def __init__(self, service):
         """
         :type service: L{pycloudia.activities.facades.interfaces.IService}

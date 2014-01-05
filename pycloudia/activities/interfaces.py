@@ -1,13 +1,21 @@
-from zope.interface import Interface
+from abc import ABCMeta, abstractmethod
 
 
-class IActivity(Interface):
-    def initialize():
-        pass
+class IActivity(object):
+    __metaclass__ = ABCMeta
 
-    def start():
-        pass
+    @abstractmethod
+    def initialize(self):
+        """
+        :rtype: L{Deferred}
+        """
+
+    @abstractmethod
+    def start(self):
+        """
+        :rtype: L{Deferred}
+        """
 
 
-class IActivityFactory(Interface):
-    pass
+class IActivityFactory(object):
+    __metaclass__ = ABCMeta

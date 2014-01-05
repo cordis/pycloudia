@@ -1,17 +1,14 @@
-from zope.interface import implementer
-
 from pycloudia.explorer.interfaces import IAgentConfig
-from pycloudia.uitls.beans import BaseBean
+from pycloudia.uitls.beans import DataBean
 
 
-class Peer(BaseBean):
+class Peer(DataBean):
     stream = None
     identity = None
     heartbeat = None
 
 
-@implementer(IAgentConfig)
-class Config(BaseBean):
+class Config(DataBean, IAgentConfig):
     host = None
     min_port = None
     max_port = None

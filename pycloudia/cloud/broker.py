@@ -1,13 +1,10 @@
-from zope.interface import implementer
-
 from pycloudia.packages import IPackageEncoder
 from pycloudia.packages import IPackageDecoder
 from pycloudia.cloud.interfaces import ISender, IReader
 from pycloudia.cloud.consts import HEADER
 
 
-@implementer(ISender, IReader)
-class Broker(object):
+class Broker(object, ISender, IReader):
     package_encoder = IPackageEncoder
     package_decoder = IPackageDecoder
 

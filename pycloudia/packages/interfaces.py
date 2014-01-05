@@ -1,13 +1,27 @@
-from zope.interface import Interface, Attribute
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 
-class IPackage(Interface):
-    content = Attribute('content', ':type: C{str}')
-    headers = Attribute('headers', ':type: C{dict}')
+class IPackage(object):
+    __metaclass__ = ABCMeta
+
+    @abstractproperty
+    def content(self):
+        """
+        :rtype: C{str}
+        """
+
+    @abstractproperty
+    def headers(self):
+        """
+        :rtype: C{dict}
+        """
 
 
-class IEncoder(Interface):
-    def encode(package):
+class IEncoder(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def encode(self, package):
         """
         :type package: C{IPackage}
         :rtype: C{str}
@@ -15,8 +29,11 @@ class IEncoder(Interface):
         """
 
 
-class IDecoder(Interface):
-    def decode(message):
+class IDecoder(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def decode(self, message):
         """
         :type message: C{str}
         :rtype: C{IPackage}

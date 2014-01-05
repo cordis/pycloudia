@@ -1,11 +1,8 @@
-from zope.interface import implementer
-
 from pycloudia.packages.interfaces import IEncoder
 from pycloudia.packages.exceptions import InvalidEncodingError
 
 
-@implementer(IEncoder)
-class Encoder(object):
+class Encoder(object, IEncoder):
     encoding = None
     content_delimiter = None
     headers_delimiter = None
