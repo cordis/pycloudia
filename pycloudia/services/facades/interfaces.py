@@ -9,7 +9,7 @@ class IService(object):
         """
         :type facade_id: C{str}
         :type client_id: C{str}
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """
 
 
@@ -77,5 +77,5 @@ class IClientDirector(object):
     @abstractmethod
     def send_package(self, package):
         """
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """

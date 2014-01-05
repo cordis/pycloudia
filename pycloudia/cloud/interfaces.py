@@ -1,4 +1,26 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
+
+
+class IPackage(object):
+    __metaclass__ = ABCMeta
+
+    @abstractproperty
+    def content(self):
+        """
+        :rtype: C{dict}
+        """
+
+    @abstractproperty
+    def headers(self):
+        """
+        :rtype: C{dict}
+        """
+
+    @abstractmethod
+    def create_response(self, content, headers):
+        """
+        :rtype: L{pycloudia.cloud.interfaces.IPackage}
+        """
 
 
 class ISender(object):
@@ -16,7 +38,7 @@ class ISender(object):
         """
         :type decisive: C{str}
         :type service: C{str}
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """
 
     @abstractmethod
@@ -24,7 +46,7 @@ class ISender(object):
         """
         :type identity: C{str}
         :type service: C{str}
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """
 
 
@@ -104,8 +126,8 @@ class IServiceInvoker(object):
     @abstractmethod
     def process_package(self, package):
         """
-        :type package: L{pycloudia.packages.interfaces.IPackage}
-        :rtype: L{Deferred} of L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
+        :rtype: L{Deferred} of L{pycloudia.cloud.interfaces.IPackage}
         """
 
 

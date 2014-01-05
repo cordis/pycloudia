@@ -10,7 +10,7 @@ class Director(object, IClientDirector):
     def __init__(self, facade_id, clients):
         """
         :type facade_id: C{str}
-        :type clients: L{pycloudia.activities.clients.interfaces.IService}
+        :type clients: L{pycloudia.services.clients.interfaces.IService}
         """
         self.facade_id = facade_id
         self.clients_service = clients

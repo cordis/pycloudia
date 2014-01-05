@@ -57,7 +57,7 @@ class ClientProxy(object, IService, IServiceAdapter):
 class ServerProxy(object, IServiceInvoker):
     def __init__(self, service):
         """
-        :type service: L{pycloudia.activities.clients.interfaces.IService}
+        :type service: L{pycloudia.services.clients.interfaces.IService}
         """
         self.service = service
 

@@ -22,14 +22,14 @@ class IService(object):
     def process_incoming_package(self, client_id, package):
         """
         :type client_id: C{str}
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """
 
     @abstractmethod
     def process_outgoing_package(self, client_id, package):
         """
         :type client_id: C{str}
-        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """
 
 

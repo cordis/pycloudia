@@ -10,7 +10,7 @@ class IService(object):
         :type client_id: C{str}
         :type platform: C{str}
         :type access_token: C{str}
-        :rtype: L{pycloudia.activities.auth.platforms.interfaces.IProfile}
+        :rtype: L{pycloudia.services.auth.platforms.interfaces.IProfile}
         :raise: L{pycloudia.services.auth.exceptions.AuthError}
         """
 
@@ -22,7 +22,7 @@ class IDao(object):
     def get_or_create_user(self, platform, profile):
         """
         :type platform: C{str}
-        :type profile: L{pycloudia.activities.auth.platforms.interfaces.IProfile}
+        :type profile: L{pycloudia.services.auth.platforms.interfaces.IProfile}
         :return: Tuple of (user_id, created)
         :rtype: (C{str}, C{boolean})
         """
@@ -32,5 +32,5 @@ class IDao(object):
         """
         :type user_id: C{str}
         :type platform: C{str}
-        :type profile_list: C{list} of L{pycloudia.activities.auth.platforms.interfaces.IProfile}
+        :type profile_list: C{list} of L{pycloudia.services.auth.platforms.interfaces.IProfile}
         """

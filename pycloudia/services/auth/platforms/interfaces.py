@@ -42,15 +42,15 @@ class IAdapter(object):
     def authenticate(self, access_token):
         """
         :type access_token: C{str}
-        :rtype: L{pycloudia.activities.auth.platforms.interfaces.IProfile}
+        :rtype: L{pycloudia.services.auth.platforms.interfaces.IProfile}
         """
 
     @abstractmethod
     def get_friends(self, access_token, profile):
         """
         :type access_token: C{str}
-        :type profile: L{pycloudia.activities.auth.platforms.interfaces.IProfile}
-        :rtype: C{list} of L{pycloudia.activities.auth.platforms.interfaces.IProfile}
+        :type profile: L{pycloudia.services.auth.platforms.interfaces.IProfile}
+        :rtype: C{list} of L{pycloudia.services.auth.platforms.interfaces.IProfile}
         """
 
 
@@ -61,5 +61,5 @@ class IAdapterRegistry(object):
     def get_adapter(self, platform):
         """
         :type platform: C{str}
-        :rtype: L{pycloudia.activities.auth.platforms.interfaces.IAdapter}
+        :rtype: L{pycloudia.services.auth.platforms.interfaces.IAdapter}
         """

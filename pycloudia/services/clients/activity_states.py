@@ -9,7 +9,7 @@ class BaseState(object):
 
     def __init__(self, activity):
         """
-        :type activity: C{pycloudia.activities.clients.activity.Activity}
+        :type activity: C{pycloudia.services.clients.activity.Activity}
         """
         self.activity = activity
 
@@ -28,7 +28,7 @@ class GuestState(BaseState):
     def _authenticate(self, package):
         user_id, package = yield self.activity.auth.set_user_state(self.activity.client_id, package)
         user_id = yield self.activity.dao.store_user_id(self.activity.client_id, user_id)
-        self.activity.set_user_state(user_id)
+        self.activity.state = UserState(self.activity, user_id)
         return_value(package)
 
     @staticmethod
