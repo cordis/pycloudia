@@ -3,7 +3,7 @@ from pycloudia.services.facades.consts import SERVICE, HEADER
 from pycloudia.cloud.interfaces import IServiceInvoker
 
 
-class ClientProxy(object, IService):
+class ClientProxy(IService):
     def __init__(self, sender):
         """
         :type sender: L{pycloudia.cloud.interfaces.ISender}
@@ -16,7 +16,7 @@ class ClientProxy(object, IService):
         self.sender.send_package_by_identity(facade_id, SERVICE.NAME, package)
 
 
-class ServerProxy(object, IServiceInvoker):
+class ServerProxy(IServiceInvoker):
     def __init__(self, service):
         """
         :type service: L{pycloudia.services.facades.interfaces.IService}
@@ -24,6 +24,6 @@ class ServerProxy(object, IServiceInvoker):
         self.service = service
 
     def process_package(self, package):
-        facade_id = package.headers[HEADER.FACADE_ID]
-        client_id = package.headers[HEADER.CLIENT_ID]
+        facade_id = package.headers.pop(HEADER.FACADE_ID)
+        client_id = package.headers.pop(HEADER.CLIENT_ID)
         self.service.process_outgoing_package(facade_id, client_id, package)

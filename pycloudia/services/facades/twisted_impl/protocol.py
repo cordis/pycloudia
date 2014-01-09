@@ -1,19 +1,13 @@
 from twisted.protocols.basic import NetstringReceiver
-from twisted.internet.protocol import Factory
-from twisted.internet.protocol import connectionDone
+from twisted.internet.protocol import Factory, connectionDone
 
 from pycloudia.services.facades.interfaces import IClient
 
 
 class Protocol(NetstringReceiver, IClient):
     factory = None
-    client_id_factory = None
-
-    def __init__(self):
-        self.client_id = None
 
     def connectionMade(self):
-        self.client_id = self.client_id_factory()
         self.factory.connection_made(self)
 
     def connectionLost(self, reason=connectionDone):
@@ -34,14 +28,9 @@ class ProtocolServerFactory(Factory):
 
     def __init__(self, director):
         """
-        :type director: L{pycloudia.services.facades.interfaces.IClientDirector}
+        :type director: L{pycloudia.services.facades.interfaces.IDirector}
         """
         self.director = director
-
-    def buildProtocol(self, address):
-        protocol = Factory.buildProtocol(self, address)
-        protocol.client_id_factory = self.director.client_id_factory
-        return protocol
 
     def connection_made(self, protocol):
         self.director.connection_made(protocol)

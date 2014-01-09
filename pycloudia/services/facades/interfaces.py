@@ -17,8 +17,9 @@ class IListener(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def start(self):
+    def start(self, director):
         """
+        :type director: L{pycloudia.services.facades.interfaces.IDirector}
         :raises L{pycloudia.services.facades.exceptions.ListenFailedError}:
         """
 
@@ -39,14 +40,8 @@ class IClient(object):
         """
 
 
-class IClientDirector(object):
+class IDirector(object):
     __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def client_id_factory(self):
-        """
-        :rtype: C{str}
-        """
 
     @abstractmethod
     def connection_made(self, client):
@@ -72,10 +67,4 @@ class IClientDirector(object):
         """
         :type client: C{IClient}
         :type str message:
-        """
-
-    @abstractmethod
-    def send_package(self, package):
-        """
-        :type package: L{pycloudia.cloud.interfaces.IPackage}
         """

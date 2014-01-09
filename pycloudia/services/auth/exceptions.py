@@ -9,6 +9,8 @@ class AuthenticationFailed(RuntimeError):
 class Resolver(object):
     __metaclass__ = ResolverMeta
 
+    EMPTY = {}
+
     @resolve_method(AuthenticationFailed, verbose=VERBOSE.AUTHENTICATION_FAILED)
     def on_authentication_failed(self, exception):
-        pass
+        return self.EMPTY
