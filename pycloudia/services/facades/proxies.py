@@ -13,7 +13,7 @@ class ClientProxy(IService):
     def process_outgoing_package(self, facade_id, client_id, package):
         package.headers[HEADER.FACADE_ID] = facade_id
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.sender.send_package_by_identity(facade_id, SERVICE.NAME, package)
+        self.sender.send_package(facade_id, SERVICE.NAME, package)
 
 
 class ServerProxy(IServiceInvoker):

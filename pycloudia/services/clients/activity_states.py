@@ -26,7 +26,7 @@ class GuestState(BaseState):
 
     @inline_callbacks
     def _authenticate(self, package):
-        user_id, package = yield self.activity.auth.set_user_state(self.activity.client_id, package)
+        user_id, package = yield self.activity.auth.authenticate(self.activity.client_id, package)
         user_id = yield self.activity.dao.store_user_id(self.activity.client_id, user_id)
         self.activity.state = UserState(self.activity, user_id)
         return_value(package)

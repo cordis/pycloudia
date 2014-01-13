@@ -1,12 +1,26 @@
-from pycloudia.packages import IPackageEncoder
-from pycloudia.packages import IPackageDecoder
+from pycloudia.uitls.defer import inline_callbacks, deferrable, Deferred
+from pycloudia.cloud.exceptions import ResponderNotFoundError
 from pycloudia.cloud.interfaces import ISender, IReader
-from pycloudia.cloud.consts import HEADER
+from pycloudia.cloud.consts import HEADER, DEFAULT
 
 
-class Broker(object, ISender, IReader):
-    package_encoder = IPackageEncoder
-    package_decoder = IPackageDecoder
+class Broker(ISender, IReader):
+    """
+    :type logger: L{logging.Logger}
+    :type package_factory: C{Callable}
+    :type package_encoder: L{pycloudia.packages.IPackageEncoder}
+    :type package_decoder: L{pycloudia.packages.IPackageDecoder}
+    :type package_wrapper_factory: C{Callable}
+    :type request_id_factory: C{Callable}
+    :type responder: L{pycloudia.cloud.interfaces.IResponder}
+    """
+    logger = None
+    package_factory = None
+    package_encoder = None
+    package_decoder = None
+    package_wrapper_factory = None
+    request_id_factory = None
+    responder = None
 
     def __init__(self, runner):
         """
@@ -14,44 +28,105 @@ class Broker(object, ISender, IReader):
         """
         self.runner = runner
 
-    def send_package_by_decisive(self, decisive, activity, package):
-        package.headers[HEADER.DECISIVE] = decisive
-        identity = self.runner.get_identity_by_decisive(decisive, activity)
-        self._send_package(identity, activity, package)
+    def send_request_package(self, source_activity, target_activity, package, timeout=DEFAULT.REQUEST_TIMEOUT):
+        package.headers[HEADER.SOURCE_SERVICE] = source_activity.service_name
+        package.headers[HEADER.SOURCE_DECISIVE] = source_activity.decisive
+        if source_activity.identity is not None:
+            package.headers[HEADER.SOURCE_IDENTITY] = source_activity.identity
+        package.headers[HEADER.REQUEST_ID] = request_id = self.request_id_factory()
+        deferred = self.responder.listen(request_id, Deferred(), timeout)
+        self.send_package(target_activity, package)
+        return deferred
 
-    def send_package_by_identity(self, identity, activity, package):
-        package.headers[HEADER.IDENTITY] = identity
-        self._send_package(identity, activity, package)
-
-    def _send_package(self, identity, activity, package):
-        package.headers[HEADER.ACTIVITY] = activity
-        message = self.package_encoder.encode(package)
-        self.runner.send_message(identity, message)
+    def send_package(self, target_activity, package):
+        package.headers[HEADER.TARGET_SERVICE] = target_activity.service_name
+        if target_activity.identity is None:
+            identity = self.runner.get_identity_by_decisive(target_activity.decisive)
+            package.headers[HEADER.TARGET_DECISIVE] = target_activity.decisive
+        else:
+            identity = target_activity.identity
+            package.headers[HEADER.TARGET_IDENTITY] = identity
+        self._send_or_process_package(identity, package)
 
     def read_message(self, message):
         try:
             package = self.package_decoder.decode(message)
-            identity = self.get_identity_from_package(package)
+            identity = self._get_identity_from_package(package)
         except (ValueError, KeyError) as e:
             self.logger.exception(e)
         else:
-            self.send_package(identity, package)
+            self._send_or_process_package(identity, package)
 
-    def get_identity_from_package(self, package):
+    def _get_identity_from_package(self, package):
         try:
-            return package.headers[HEADER.IDENTITY]
+            return package.headers[HEADER.TARGET_IDENTITY]
         except KeyError:
-            decisive = package.headers[HEADER.DECISIVE]
-            activity = package.headers[HEADER.ACTIVITY]
-            return self.runner.get_identity_by_decisive(decisive, activity)
+            decisive = package.headers[HEADER.TARGET_DECISIVE]
+            return self.runner.get_identity_by_decisive(decisive)
+
+    def _send_or_process_package(self, identity, package):
+        if self.runner.is_outgoing(identity):
+            return self._send_package(identity, package)
+        else:
+            return self._process_package(package)
+
+    @deferrable
+    def _send_package(self, identity, package):
+        message = self.package_encoder.encode(package)
+        self.runner.send_message(identity, message)
+
+    @inline_callbacks
+    def _process_package(self, package):
+        try:
+            response_id = package.headers[HEADER.RESPONSE_ID]
+        except KeyError:
+            self._process_request_package(package)
+        else:
+            self._process_response_package(response_id, package)
+
+    def _process_request_package(self, request_package):
+        service = request_package.headers[HEADER.TARGET_SERVICE]
+        invoker = self.runner.get_service_invoker_by_name(service)
+        request_package = self._wrap_package(request_package)
+        response_package = yield invoker.process_package(request_package)
+        if response_package is not None:
+            raise NotImplementedError(response_package)
+
+    def _wrap_package(self, package):
+        return self.package_wrapper_factory(package)
+
+    def _process_response_package(self, response_id, response_package):
+        try:
+            self.responder.resolve(response_id, response_package)
+        except ResponderNotFoundError as e:
+            self.logger.exception(e)
 
 
 class BrokerFactory(object):
-    package_encoder = IPackageEncoder
-    package_decoder = IPackageDecoder
+    """
+    :type logger: L{logging.Logger}
+    :type package_factory: C{Callable}
+    :type package_encoder: L{pycloudia.packages.IPackageEncoder}
+    :type package_decoder: L{pycloudia.packages.IPackageDecoder}
+    :type package_wrapper_factory: C{Callable}
+    :type request_id_factory: C{Callable}
+    :type responder: L{pycloudia.cloud.interfaces.IResponder}
+    """
+    logger = None
+    package_factory = None
+    package_encoder = None
+    package_decoder = None
+    package_wrapper_factory = None
+    request_id_factory = None
+    responder = None
 
     def __call__(self, runner):
         instance = Broker(runner)
+        instance.logger = self.logger
+        instance.package_factory = self.package_factory
         instance.package_encoder = self.package_encoder
         instance.package_decoder = self.package_decoder
+        instance.package_wrapper_factory = self.package_wrapper_factory
+        instance.request_id_factory = self.request_id_factory
+        instance.responder = self.responder
         return instance

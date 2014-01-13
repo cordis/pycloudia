@@ -1,7 +1,14 @@
 from pycloudia.cloud.interfaces import IRunner
 
 
-class Runner(object, IRunner):
+class Runner(IRunner):
+    """
+    :type reactor: L{pycloudia.reactor.interfaces.IReactor}
+    :type logger: L{logging.Logger}
+    :type mapper: L{pycloudia.cloud.interfaces.IMapper}
+    :type broker: L{pycloudia.cloud.interfaces.IReader}
+    """
+    reactor = None
     logger = None
     mapper = None
     broker = None
@@ -18,47 +25,44 @@ class Runner(object, IRunner):
 
     def attach_outgoing_stream(self, stream):
         self.outgoing_stream_map[stream.identity] = stream
-        changes = self.mapper.attach(stream.identity)
-        self._process_slot_changes(changes)
+        self.mapper.attach(stream.identity)
+        changes = self.mapper.balance()
+        self._process_changes(changes)
 
     def detach_outgoing_stream(self, stream):
         del self.outgoing_stream_map[stream.identity]
-        changes = self.mapper.detach(stream.identity)
-        self._process_slot_changes(changes)
+        self.mapper.detach(stream.identity)
+        changes = self.mapper.balance()
+        self._process_changes(changes)
 
-    def _process_slot_changes(self, changes):
-        """
-        @TODO: Scalability and Fault-tolerance are handled right here!
-        """
-        for oldSlot, newSlot in changes:
-            pass
+    def _process_changes(self, changes):
+        for activity, source_identity, target_identity in changes:
+            raise NotImplementedError('Scalability and Fault-tolerance are handled right here!')
 
     def send_message(self, identity, message):
-        if self.is_outgoing(identity):
-            stream = self.outgoing_stream_map[identity]
-            message = stream.encode_message_string(message)
-            stream.send_message(message)
-        else:
-            self.broker.read_message(message)
+        stream = self.outgoing_stream_map[identity]
+        message = stream.encode_message_string(message)
+        stream.send_message(message)
 
     def is_outgoing(self, identity):
         return identity != self.incoming_stream.identity
 
-    def get_identity_by_decisive(self, decisive, activity):
-        groups = self._get_groups_by_activity(activity)
-        return self.mapper.get_item_by_decisive(decisive, groups)
+    def get_identity_by_decisive(self, decisive):
+        return self.mapper.get_item_by_hashable(decisive)
 
-    def _get_groups_by_activity(self, activity):
-        return None
+    def get_service_invoker_by_name(self, name):
+        raise NotImplementedError()
 
 
 class RunnerFactory(object):
+    reactor = None
     logger = None
     mapper_factory = None
     broker_factory = None
 
     def __call__(self):
         instance = Runner()
+        instance.reactor = self.reactor
         instance.logger = self.logger
         instance.mapper = self.mapper_factory()
         instance.broker = self.broker_factory(instance)

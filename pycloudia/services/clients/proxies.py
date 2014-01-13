@@ -28,14 +28,14 @@ class ClientProxy(object, IService, IServiceAdapter):
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.CREATE,
         })
-        self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
+        self.sender.send_request_package(client_id, SERVICE.NAME, package)
 
     def delete_activity(self, client_id, reason=None):
         request = RequestDeleteSchema().encode(DataBean(client_id=client_id, reason=reason))
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.DELETE,
         })
-        self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
+        self.sender.send_request_package(client_id, SERVICE.NAME, package)
 
     def suspend_activity(self, client_id):
         raise NotImplementedError()
@@ -46,12 +46,12 @@ class ClientProxy(object, IService, IServiceAdapter):
     def process_incoming_package(self, client_id, package):
         package.headers[HEADER.SOURCE] = SOURCE.EXTERNAL
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
+        self.sender.send_request_package(client_id, SERVICE.NAME, package)
 
     def process_outgoing_package(self, client_id, package):
         package.headers[HEADER.SOURCE] = SOURCE.INTERNAL
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.sender.send_package_by_decisive(client_id, SERVICE.NAME, package)
+        self.sender.send_request_package(client_id, SERVICE.NAME, package)
 
 
 class ServerProxy(object, IServiceInvoker):

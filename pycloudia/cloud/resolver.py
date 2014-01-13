@@ -2,7 +2,7 @@ from functools import wraps
 
 from pycloudia.uitls.defer import inline_callbacks, return_value, maybe_deferred
 from pycloudia.cloud.consts import HEADER, STATUS
-from pycloudia.cloud.interfaces import IPackage
+from pycloudia.cloud.interfaces import IRequestPackage
 
 
 __all__ = [
@@ -59,7 +59,7 @@ class ResolverDecorator(object):
         @wraps(func)
         @inline_callbacks
         def decorator(subject, package, *args, **kwargs):
-            assert isinstance(package, IPackage)
+            assert isinstance(package, IRequestPackage)
             try:
                 response = yield maybe_deferred(func(subject, package, *args, **kwargs))
             except Exception as e:

@@ -9,7 +9,7 @@ from pycloudia.services.auth.schemas import AuthenticateRequestSchema, Authentic
 from pycloudia.services.auth.exceptions import Resolver
 
 
-class ClientProxy(object, IService):
+class ClientProxy(IService):
     name = SERVICE.NAME
 
     def __init__(self, sender):
@@ -24,10 +24,12 @@ class ClientProxy(object, IService):
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.AUTHENTICATE,
         })
-        self.sender.send_package_by_decisive(client_id, self.name, package)
+        response_package = self.sender.send_request_package(client_id, self.name, package)
+        response = AuthenticateResponseSchema().decode(response_package.content)
+        return response
 
 
-class ServerProxy(object, IServiceInvoker):
+class ServerProxy(IServiceInvoker):
     def __init__(self, service):
         """
         :type service: L{pycloudia.services.auth.interfaces.IService}

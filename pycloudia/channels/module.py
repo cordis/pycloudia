@@ -5,7 +5,7 @@ from pycloudia.packages.decoder import Decoder
 from pycloudia.packages.encoder import Encoder
 from pycloudia.packages.factory import PackageFactory
 from pycloudia.channels.factory import ChannelFactory
-from pycloudia.channels.responder import Responder
+from pycloudia.cloud.responder import Responder
 
 
 class ChannelsModule(PythonConfig):

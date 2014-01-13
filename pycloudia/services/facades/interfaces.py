@@ -9,7 +9,7 @@ class IService(object):
         """
         :type facade_id: C{str}
         :type client_id: C{str}
-        :type package: L{pycloudia.cloud.interfaces.IPackage}
+        :type package: L{pycloudia.cloud.interfaces.IRequestPackage}
         """
 
 
