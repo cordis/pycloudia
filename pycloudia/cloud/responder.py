@@ -1,4 +1,4 @@
-from pycloudia.cloud.exceptions import ResponderTimeoutError, ResponderNotFoundError
+from pycloudia.cloud.exceptions import RequestTimeoutError, ResponderNotFoundError
 from pycloudia.cloud.interfaces import IResponder
 
 
@@ -18,7 +18,7 @@ class Responder(IResponder):
         return deferred
 
     def _set_timeout(self, request_id, timeout):
-        self.reactor.call_later(timeout, self.reject, request_id, ResponderTimeoutError(request_id))
+        self.reactor.call_later(timeout, self.reject, request_id, RequestTimeoutError(request_id))
 
     def reject(self, request_id, reason):
         try:

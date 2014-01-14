@@ -1,4 +1,5 @@
 from pycloudia.uitls.defer import inline_callbacks, deferrable
+from pycloudia.cloud.exceptions import RequestTimeoutError
 from pycloudia.services.facades.exceptions import ClientNotFoundError
 from pycloudia.services.gateways.consts import HEADER
 from pycloudia.services.gateways.interfaces import IService

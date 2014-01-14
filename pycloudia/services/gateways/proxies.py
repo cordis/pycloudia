@@ -1,9 +1,10 @@
 from pyschema import Schema, Str
 
+from pycloudia.uitls.defer import inline_callbacks, return_value, deferrable
+from pycloudia.uitls.beans import DataBean
 from pycloudia.cloud.interfaces import IServiceInvoker, IServiceAdapter
 from pycloudia.services.gateways.interfaces import IService
 from pycloudia.services.gateways.consts import HEADER, COMMAND, SERVICE, SOURCE
-from pycloudia.uitls.beans import DataBean
 
 
 class RequestCreateSchema(Schema):
@@ -16,7 +17,7 @@ class RequestDeleteSchema(Schema):
     reason = Str()
 
 
-class ClientProxy(object, IService, IServiceAdapter):
+class ClientProxy(IService, IServiceAdapter):
     def __init__(self, sender):
         """
         :type sender: L{pycloudia.cloud.interfaces.ISender}
@@ -28,51 +29,81 @@ class ClientProxy(object, IService, IServiceAdapter):
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.CREATE,
         })
-        self.sender.send_request_package(client_id, SERVICE.NAME, package)
+        self.sender.send_package(client_id, SERVICE.NAME, package)
 
     def delete_gateway(self, client_id, reason=None):
         request = RequestDeleteSchema().encode(DataBean(client_id=client_id, reason=reason))
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.DELETE,
         })
-        self.sender.send_request_package(client_id, SERVICE.NAME, package)
+        self.sender.send_package(client_id, SERVICE.NAME, package)
 
     def suspend_activity(self, client_id):
         raise NotImplementedError()
 
-    def restore_activity(self, client_id, facade_id):
+    def recover_activity(self, client_id, facade_id):
         raise NotImplementedError()
+
+    def authenticate_gateway(self, client_id, user_id):
+        package = self.sender.package_factory({}, {
+            HEADER.CLIENT_ID: client_id,
+            HEADER.USER_ID: user_id,
+            HEADER.COMMAND: COMMAND.AUTHENTICATE,
+        })
+        return self.sender.send_request_package(package)
 
     def process_incoming_package(self, client_id, package):
         package.headers[HEADER.SOURCE] = SOURCE.EXTERNAL
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.sender.send_request_package(client_id, SERVICE.NAME, package)
+        self.sender.send_package(client_id, SERVICE.NAME, package)
 
     def process_outgoing_package(self, client_id, package):
         package.headers[HEADER.SOURCE] = SOURCE.INTERNAL
         package.headers[HEADER.CLIENT_ID] = client_id
-        self.sender.send_request_package(client_id, SERVICE.NAME, package)
+        self.sender.send_package(client_id, SERVICE.NAME, package)
 
 
-class ServerProxy(object, IServiceInvoker):
+class ServerProxy(IServiceInvoker):
     def __init__(self, service):
         """
-        :type service: L{pycloudia.services.clients.interfaces.IService}
+        :type service: L{pycloudia.services.gateways.interfaces.IService}
         """
         self.service = service
 
+    @deferrable
     def process_package(self, package):
-        command = package.headers[HEADER.COMMAND]
-        if command == COMMAND.CREATE:
-            request = RequestCreateSchema().decode(package.content)
-            self.service.create_gateway(request.client_id, request.facade_id)
-        elif command == COMMAND.DELETE:
-            request = RequestDeleteSchema().decode(package.content)
-            self.service.delete_gateway(request.client_id, request.reason)
+        command = package.headers.pop(HEADER.COMMAND, None)
+        method = {
+            COMMAND.CREATE: self._process_create_command,
+            COMMAND.DELETE: self._process_delete_command,
+            COMMAND.AUTHENTICATE: self._process_authenticate_command,
+        }.get(command, self._forward_package)
+        return method(package)
+
+    @deferrable
+    def _process_create_command(self, package):
+        request = RequestCreateSchema().decode(package.content)
+        return self.service.create_gateway(request.client_id, request.facade_id)
+
+    @deferrable
+    def _process_delete_command(self, package):
+        request = RequestDeleteSchema().decode(package.content)
+        return self.service.delete_gateway(request.client_id, request.reason)
+
+    @inline_callbacks
+    def _process_authenticate_command(self, package):
+        client_id = package.headers[HEADER.CLIENT_ID]
+        user_id = package.headers[HEADER.USER_ID]
+        yield self.service.authenticate_gateway(client_id, user_id)
+        return_value(package.create_response())
+
+    @deferrable
+    def _forward_package(self, package):
+        client_id = package.headers[HEADER.CLIENT_ID]
+        source = package.headers[HEADER.SOURCE]
+        if source == SOURCE.EXTERNAL:
+            return self.service.process_incoming_package(client_id, package)
+        elif source == SOURCE.INTERNAL:
+            return self.service.process_outgoing_package(client_id, package)
         else:
-            client_id = package.headers[HEADER.CLIENT_ID]
-            source = package.headers[HEADER.SOURCE]
-            if source == SOURCE.EXTERNAL:
-                self.service.process_incoming_package(client_id, package)
-            elif source == SOURCE.INTERNAL:
-                self.service.process_outgoing_package(client_id, package)
+            raise ValueError(source)

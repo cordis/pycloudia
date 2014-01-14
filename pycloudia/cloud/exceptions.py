@@ -4,7 +4,7 @@ class ResponderError(RuntimeError):
         super(ResponderError, self).__init__(*args, **kwargs)
 
 
-class ResponderTimeoutError(ResponderError):
+class RequestTimeoutError(ResponderError):
     pass
 
 
