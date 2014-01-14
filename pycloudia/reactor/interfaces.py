@@ -81,3 +81,35 @@ class ILoopingCall(object):
     @abstractmethod
     def reset(self):
         pass
+
+
+class IIsolatedReactor(IReactor):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def isolate(self, hashable):
+        """
+        :type hashable: C{Hashable}
+        :rtype: L{pycloudia.reactor.interfaces.IReactor}
+        """
+
+    @abstractmethod
+    def call_isolated(self, hashable, func, *args, **kwargs):
+        """
+        :type hashable: C{Hashable}
+        :type func: C{callable}
+        :param *args: Passed to C{func}
+        :param **kwargs: Passed to C{func}
+        :rtype: L{pycloudia.utils.defer.Deferred}
+        """
+
+    @abstractmethod
+    def call_later_isolated(self, hashable, seconds, func, *args, **kwargs):
+        """
+        :type hashable: C{Hashable}
+        :type seconds: C{int}
+        :type func: C{callable}
+        :param *args: Passed to C{func}
+        :param **kwargs: Passed to C{func}
+        :rtype: L{pycloudia.utils.defer.Deferred}
+        """

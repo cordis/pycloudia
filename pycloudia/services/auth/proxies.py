@@ -18,15 +18,21 @@ class ClientProxy(IService):
         """
         self.sender = sender
 
+    @inline_callbacks
     def authenticate(self, client_id, platform, access_token):
+        _, response_package = yield self.authenticate_and_return_package(client_id, platform, access_token)
+        response = AuthenticateResponseSchema().decode(response_package.content)
+        return_value(response)
+
+    @inline_callbacks
+    def authenticate_and_return_package(self, client_id, platform, access_token):
         request = DataBean(client_id=client_id, platform=platform, access_token=access_token)
         request = AuthenticateRequestSchema().encode(request)
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.AUTHENTICATE,
         })
         response_package = self.sender.send_request_package(client_id, self.name, package)
-        response = AuthenticateResponseSchema().decode(response_package.content)
-        return response
+        return_value((response_package.headers[HEADER.USER_ID], response_package))
 
 
 class ServerProxy(IServiceInvoker):

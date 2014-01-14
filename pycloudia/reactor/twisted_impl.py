@@ -1,9 +1,9 @@
-from pycloudia.reactor.interfaces import IReactor, ILoopingCall
 from pycloudia.uitls.defer import Deferred
+from pycloudia.reactor.interfaces import IReactor, ILoopingCall
+from pycloudia.reactor.isolated import IsolatedReactor
 
 
-class ReactorAdapter(object, IReactor):
-
+class ReactorAdapter(IReactor):
     @classmethod
     def create_instance(cls):
         """
@@ -17,6 +17,7 @@ class ReactorAdapter(object, IReactor):
         :param subject: C{twisted.internet.reactor}
         """
         self.subject = subject
+        self.lockable_collection = IsolatedReactor(self)
 
     def time(self):
         """
@@ -67,13 +68,18 @@ class ReactorAdapter(object, IReactor):
     def create_looping_call(self, func, *args, **kwargs):
         from twisted.internet.task import LoopingCall
 
-        @implementer(ILoopingCall)
-        class LoopingCallAdapter(LoopingCall):
+        class LoopingCallAdapter(LoopingCall, ILoopingCall):
             pass
 
         looping_call = LoopingCallAdapter(func, *args, **kwargs)
         looping_call.clock = self.subject
         return looping_call
+
+    def get_lockable_collection(self):
+        return self.lockable_collection
+
+    def get_lockable_reactor(self, hashable):
+        return self.lockable_collection.get(hashable)
 
     def call_feature(self, name, *args, **kwargs):
         """

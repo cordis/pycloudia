@@ -1,8 +1,9 @@
-from pycloudia.services.clients.consts import HEADER
-from pycloudia.services.clients.exceptions import ActivityNotFoundError, HeaderNotFoundError
+from pycloudia.services.gateways.consts import HEADER
+from pycloudia.services.gateways.exceptions import ActivityNotFoundError, HeaderNotFoundError
+from pycloudia.services.gateways.interfaces import IRouter
 
 
-class Router(object):
+class Router(IRouter):
     service_map = None
 
     def route_package(self, package):

@@ -1,22 +1,24 @@
-from pycloudia.uitls.abstracts import BiDirectedDict
+from pycloudia.uitls.structs import BiDirectedDict
 from pycloudia.uitls.defer import deferrable
+from pycloudia.services.facades.exceptions import ClientNotFoundError
 from pycloudia.services.facades.interfaces import IService, IDirector
 
 
 class Service(IService, IDirector):
     """
+    :type gateways: L{pycloudia.services.gateways.interfaces.IService}
     :type logger: L{pycloudia.services.facades.logger.Logger}
     :type listener: L{pycloudia.services.facades.interfaces.IListener}
     :type encoder: L{pycloudia.packages.interfaces.IEncoder}
     :type decoder: L{pycloudia.packages.interfaces.IDecoder}
-    :type clients: L{pycloudia.services.clients.interfaces.IService}
     :type client_id_factory: C{Callable}
     """
+    gateways = None
+
     logger = None
     listener = None
     encoder = None
     decoder = None
-    clients = None
     client_id_factory = None
 
     def __init__(self, facade_id):
@@ -33,7 +35,7 @@ class Service(IService, IDirector):
 
     def connection_made(self, client):
         self.clients_map[client] = client_id = self.client_id_factory()
-        self.clients.create_activity(client_id, self.facade_id)
+        self.gateways.create_gateway(client_id, self.facade_id)
 
     def connection_done(self, client):
         self.connection_lost(client, None)
@@ -44,7 +46,7 @@ class Service(IService, IDirector):
         except KeyError:
             self.logger.log_client_not_found(client)
         else:
-            self.clients.delete_activity(client_id, reason)
+            self.gateways.delete_gateway(client_id, reason)
 
     def read_message(self, client, message):
         try:
@@ -53,14 +55,20 @@ class Service(IService, IDirector):
             self.logger.log_client_not_found(client)
         else:
             package = self.decoder.decode(message)
-            self.clients.process_incoming_package(client_id, package)
+            self.gateways.process_incoming_package(client_id, package)
 
     def process_outgoing_package(self, facade_id, client_id, package):
         assert facade_id == self.facade_id
+        client = self._get_client_by_client_id(client_id)
+        message = self.encoder.encode(package)
+        client.send_message(message)
+
+    def validate(self, facade_id, client_id):
+        assert facade_id == self.facade_id
+        self._get_client_by_client_id(client_id)
+
+    def _get_client_by_client_id(self, client_id):
         try:
-            client = self.clients_map.behind[client_id]
+            return self.clients_map.behind[client_id]
         except KeyError:
-            self.logger.log_client_not_found(client_id)
-        else:
-            message = self.encoder.encode(package)
-            client.send_message(message)
+            raise ClientNotFoundError(client_id)

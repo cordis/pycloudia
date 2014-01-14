@@ -1,5 +1,5 @@
 class SERVICE(object):
-    NAME = 'clients'
+    NAME = 'gateways'
 
 
 class COMMAND(object):
@@ -19,3 +19,5 @@ class HEADER(object):
     SERVICE = 'X-Clients-Service'
     COMMAND = 'X-Clients-Command'
     CLIENT_ID = 'X-Clients-Client-Id'
+    AUTH_PLATFORM = 'X-Clients-Auth-Platform'
+    AUTH_ACCESS_TOKEN = 'X-Clients-Auth-Access-Token'

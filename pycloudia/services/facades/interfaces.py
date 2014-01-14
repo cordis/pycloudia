@@ -9,7 +9,16 @@ class IService(object):
         """
         :type facade_id: C{str}
         :type client_id: C{str}
-        :type package: L{pycloudia.cloud.interfaces.IRequestPackage}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
+        """
+
+    @abstractmethod
+    def validate(self, facade_id, client_id):
+        """
+        :type facade_id: C{str}
+        :type client_id: C{str}
+        :rtype: L{Deferred}
+        :raise: L{pycloudia.services.facades.exceptions.ClientNotFoundError}
         """
 
 

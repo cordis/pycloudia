@@ -1,8 +1,8 @@
 from pyschema import Schema, Str
 
 from pycloudia.cloud.interfaces import IServiceInvoker, IServiceAdapter
-from pycloudia.services.clients.interfaces import IService
-from pycloudia.services.clients.consts import HEADER, COMMAND, SERVICE, SOURCE
+from pycloudia.services.gateways.interfaces import IService
+from pycloudia.services.gateways.consts import HEADER, COMMAND, SERVICE, SOURCE
 from pycloudia.uitls.beans import DataBean
 
 
@@ -23,14 +23,14 @@ class ClientProxy(object, IService, IServiceAdapter):
         """
         self.sender = sender
 
-    def create_activity(self, client_id, facade_id):
+    def create_gateway(self, client_id, facade_id):
         request = RequestCreateSchema().encode(DataBean(client_id=client_id, facade_id=facade_id))
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.CREATE,
         })
         self.sender.send_request_package(client_id, SERVICE.NAME, package)
 
-    def delete_activity(self, client_id, reason=None):
+    def delete_gateway(self, client_id, reason=None):
         request = RequestDeleteSchema().encode(DataBean(client_id=client_id, reason=reason))
         package = self.sender.package_factory(request, {
             HEADER.COMMAND: COMMAND.DELETE,
@@ -65,10 +65,10 @@ class ServerProxy(object, IServiceInvoker):
         command = package.headers[HEADER.COMMAND]
         if command == COMMAND.CREATE:
             request = RequestCreateSchema().decode(package.content)
-            self.service.create_activity(request.client_id, request.facade_id)
+            self.service.create_gateway(request.client_id, request.facade_id)
         elif command == COMMAND.DELETE:
             request = RequestDeleteSchema().decode(package.content)
-            self.service.delete_activity(request.client_id, request.reason)
+            self.service.delete_gateway(request.client_id, request.reason)
         else:
             client_id = package.headers[HEADER.CLIENT_ID]
             source = package.headers[HEADER.SOURCE]
