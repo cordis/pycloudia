@@ -39,7 +39,7 @@ class Broker(ISender, IReader):
     def _set_source_headers(package, source):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
-        :type source: L{pycloudia.cluster.interfaces.IActivity}
+        :type source: L{pycloudia.cluster.beans.Activity}
         :rtype: L{pycloudia.packages.interfaces.IPackage}
         """
         package.headers[HEADER.SOURCE_SERVICE] = source.service
@@ -60,7 +60,7 @@ class Broker(ISender, IReader):
     def _set_target_headers(package, target):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
-        :type target: L{pycloudia.cluster.interfaces.IActivity}
+        :type target: L{pycloudia.cluster.beans.Activity}
         :rtype: L{pycloudia.packages.interfaces.IPackage}
         """
         package.headers[HEADER.TARGET_SERVICE] = target.service
@@ -74,7 +74,7 @@ class Broker(ISender, IReader):
 
     def _get_activity_address(self, activity):
         """
-        :type activity: L{pycloudia.cluster.interfaces.IActivity}
+        :type activity: L{pycloudia.cluster.beans.Activity}
         :rtype: C{object}
         """
         if activity.address is not None:

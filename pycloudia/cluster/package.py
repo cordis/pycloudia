@@ -49,7 +49,7 @@ class PackageContent(object):
         return self.decoded
 
 
-class PackageWrapper(IRequestPackage):
+class RequestPackage(IRequestPackage):
     def __init__(self, subject):
         """
         :type subject: L{pycloudia.packages.interfaces.IPackage}
@@ -66,22 +66,27 @@ class PackageWrapper(IRequestPackage):
         if HEADER.REQUEST_ID not in self.subject.headers:
             return None
         response = type(self.subject)(content, headers)
-        response.headers.update({
-            HEADER.RESPONSE_ID: self.subject.headers[HEADER.REQUEST_ID],
-            HEADER.TARGET_SERVICE: self.subject.headers[HEADER.SOURCE_SERVICE],
-        })
-        try:
-            response.headers[HEADER.TARGET_RUNTIME] = self.subject.headers[HEADER.SOURCE_RUNTIME]
-        except KeyError:
-            pass
-        try:
-            response.headers[HEADER.TARGET_ADDRESS] = self.subject.headers[HEADER.SOURCE_ADDRESS]
-        except KeyError:
-            pass
+        response = self._copy_header(response, HEADER.REQUEST_ID, HEADER.RESPONSE_ID)
+        response = self._copy_header(response, HEADER.SOURCE_SERVICE, HEADER.TARGET_SERVICE)
+        response = self._copy_header(response, HEADER.SOURCE_RUNTIME, HEADER.TARGET_RUNTIME)
+        response = self._copy_header(response, HEADER.SOURCE_ADDRESS, HEADER.TARGET_ADDRESS)
         return response
 
+    def _copy_header(self, package, source, target):
+        """
+        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type source: C{str}
+        :type target: C{str}
+        :rtype: L{pycloudia.packages.interfaces.IPackage}
+        """
+        try:
+            package.headers[target] = self.subject.headers[source]
+        except KeyError:
+            pass
+        return package
 
-class PackageWrapperFactory(object):
+
+class RequestPackageFactory(object):
     """
     :type content_encoder: C{Callable}
     :type content_decoder: C{Callable}
@@ -96,4 +101,4 @@ class PackageWrapperFactory(object):
         package.content = PackageContent(package.content)
         package.content.encoder = self.content_encoder
         package.content.decoder = self.content_decoder
-        return PackageWrapper(package)
+        return RequestPackage(package)

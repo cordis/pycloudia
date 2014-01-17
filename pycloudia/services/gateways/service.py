@@ -8,7 +8,7 @@ from pycloudia.services.gateways.runtime import Runtime
 
 class Service(IService, IActivityFactory):
     """
-    :type activities: L{pycloudia.cluster.interfaces.IActivityRegistry}
+    :type activities: L{pycloudia.cluster.beans.ActivityRegistry}
     :type facades: L{pycloudia.services.facades.interfaces.IService}
     :type gateway_factory: C{Callable}
     :type router: L{pycloudia.services.gateways.interfaces.IRouter}

@@ -10,7 +10,7 @@ class IService(object):
         :type client_id: C{str}
         :type platform: C{str}
         :type access_token: C{str}
-        :rtype: L{pycloudia.services.auth.platforms.interfaces.IProfile}
+        :rtype: L{Deferred} of L{pycloudia.services.auth.platforms.interfaces.IProfile}
         :raise: L{pycloudia.services.auth.exceptions.AuthError}
         """
 

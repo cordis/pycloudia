@@ -1,7 +1,7 @@
+from pycloudia.uitls.structs import DataBean
 from pyschema import Schema, Str
 
 from pycloudia.uitls.defer import inline_callbacks, return_value, deferrable
-from pycloudia.uitls.beans import DataBean
 from pycloudia.cluster.interfaces import IServiceInvoker, IServiceAdapter
 from pycloudia.services.gateways.interfaces import IService
 from pycloudia.services.gateways.consts import HEADER, COMMAND, SERVICE, SOURCE

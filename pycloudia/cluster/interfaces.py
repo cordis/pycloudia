@@ -25,28 +25,6 @@ class IRequestPackage(IPackage):
         """
 
 
-class IActivity(object):
-    __metaclass__ = ABCMeta
-
-    @abstractproperty
-    def service(self):
-        """
-        :rtype: C{str}
-        """
-
-    @abstractproperty
-    def runtime(self):
-        """
-        :rtype: C{Hashable}
-        """
-
-    @abstractproperty
-    def address(self):
-        """
-        :rtype: C{object}
-        """
-
-
 class ISender(object):
     __metaclass__ = ABCMeta
 
@@ -55,21 +33,22 @@ class ISender(object):
         """
         :type content: C{dict}
         :type headers: C{None} or C{dict}
+        :rtype: L{pycloudia.packages.interfaces.IPackage}
         """
 
     @abstractmethod
     def send_request_package(self, source, target, package, timeout=0):
         """
-        :type source: L{pycloudia.cluster.interfaces.IActivity}
-        :type target: L{pycloudia.cluster.interfaces.IActivity}
-        :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
+        :type source: L{pycloudia.cluster.beans.Activity}
+        :type target: L{pycloudia.cluster.beans.Activity}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
         :type timeout: C{int}
         """
 
     @abstractmethod
     def send_package(self, target, package):
         """
-        :type target: L{pycloudia.cluster.interfaces.IActivity}
+        :type target: L{pycloudia.cluster.beans.Activity}
         :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
         """
 
