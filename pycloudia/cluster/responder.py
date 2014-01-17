@@ -1,5 +1,5 @@
-from pycloudia.cloud.exceptions import RequestTimeoutError, ResponderNotFoundError
-from pycloudia.cloud.interfaces import IResponder
+from pycloudia.cluster.exceptions import RequestTimeoutError, ResponderNotFoundError
+from pycloudia.cluster.interfaces import IResponder
 
 
 class Responder(IResponder):

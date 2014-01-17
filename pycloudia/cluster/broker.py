@@ -1,7 +1,7 @@
 from pycloudia.uitls.defer import inline_callbacks, deferrable, Deferred
-from pycloudia.cloud.exceptions import ResponderNotFoundError
-from pycloudia.cloud.interfaces import ISender, IReader
-from pycloudia.cloud.consts import HEADER, DEFAULT
+from pycloudia.cluster.exceptions import ResponderNotFoundError, InvalidActivityError
+from pycloudia.cluster.interfaces import ISender, IReader
+from pycloudia.cluster.consts import HEADER, DEFAULT
 
 
 class Broker(ISender, IReader):
@@ -12,7 +12,7 @@ class Broker(ISender, IReader):
     :type package_decoder: L{pycloudia.packages.IPackageDecoder}
     :type package_wrapper_factory: C{Callable}
     :type request_id_factory: C{Callable}
-    :type responder: L{pycloudia.cloud.interfaces.IResponder}
+    :type responder: L{pycloudia.cluster.interfaces.IResponder}
     """
     logger = None
     package_factory = None
@@ -24,56 +24,92 @@ class Broker(ISender, IReader):
 
     def __init__(self, runner):
         """
-        :type runner: L{pycloudia.cloud.interfaces.IRunner}
+        :type runner: L{pycloudia.cluster.interfaces.IRunner}
         """
         self.runner = runner
 
-    def send_request_package(self, source_activity, target_activity, package, timeout=DEFAULT.REQUEST_TIMEOUT):
-        package.headers[HEADER.SOURCE_SERVICE] = source_activity.service_name
-        package.headers[HEADER.SOURCE_DECISIVE] = source_activity.decisive
-        if source_activity.identity is not None:
-            package.headers[HEADER.SOURCE_IDENTITY] = source_activity.identity
+    def send_request_package(self, source, target, package, timeout=DEFAULT.REQUEST_TIMEOUT):
+        package = self._set_source_headers(package, source)
         package.headers[HEADER.REQUEST_ID] = request_id = self.request_id_factory()
         deferred = self.responder.listen(request_id, Deferred(), timeout)
-        self.send_package(target_activity, package)
+        self.send_package(target, package)
         return deferred
 
-    def send_package(self, target_activity, package):
-        package.headers[HEADER.TARGET_SERVICE] = target_activity.service_name
-        if target_activity.identity is None:
-            identity = self.runner.get_identity_by_decisive(target_activity.decisive)
-            package.headers[HEADER.TARGET_DECISIVE] = target_activity.decisive
+    @staticmethod
+    def _set_source_headers(package, source):
+        """
+        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type source: L{pycloudia.cluster.interfaces.IActivity}
+        :rtype: L{pycloudia.packages.interfaces.IPackage}
+        """
+        package.headers[HEADER.SOURCE_SERVICE] = source.service
+        if source.address is not None:
+            package.headers[HEADER.SOURCE_ADDRESS] = source.address
+        elif source.runtime:
+            package.headers[HEADER.SOURCE_RUNTIME] = source.runtime
         else:
-            identity = target_activity.identity
-            package.headers[HEADER.TARGET_IDENTITY] = identity
-        self._send_or_process_package(identity, package)
+            raise InvalidActivityError(source)
+        return package
+
+    def send_package(self, target, package):
+        package = self._set_target_headers(package, target)
+        address = self._get_activity_address(target)
+        self._send_or_process_package(address, package)
+
+    @staticmethod
+    def _set_target_headers(package, target):
+        """
+        :type package: L{pycloudia.packages.interfaces.IPackage}
+        :type target: L{pycloudia.cluster.interfaces.IActivity}
+        :rtype: L{pycloudia.packages.interfaces.IPackage}
+        """
+        package.headers[HEADER.TARGET_SERVICE] = target.service
+        if target.address is not None:
+            package.headers[HEADER.TARGET_ADDRESS] = target.address
+        elif target.runtime:
+            package.headers[HEADER.TARGET_RUNTIME] = target.runtime
+        else:
+            raise InvalidActivityError(target)
+        return package
+
+    def _get_activity_address(self, activity):
+        """
+        :type activity: L{pycloudia.cluster.interfaces.IActivity}
+        :rtype: C{object}
+        """
+        if activity.address is not None:
+            return activity.address
+        elif activity.runtime is not None:
+            return self.runner.get_identity_by_decisive(activity.runtime)
+        else:
+            raise InvalidActivityError(activity)
 
     def read_message(self, message):
         try:
             package = self.package_decoder.decode(message)
-            identity = self._get_identity_from_package(package)
+            address = self._get_address_from_package(package)
         except (ValueError, KeyError) as e:
             self.logger.exception(e)
         else:
-            self._send_or_process_package(identity, package)
+            self._send_or_process_package(address, package)
 
-    def _get_identity_from_package(self, package):
+    def _get_address_from_package(self, package):
         try:
-            return package.headers[HEADER.TARGET_IDENTITY]
+            return package.headers[HEADER.TARGET_ADDRESS]
         except KeyError:
-            decisive = package.headers[HEADER.TARGET_DECISIVE]
-            return self.runner.get_identity_by_decisive(decisive)
+            runtime = package.headers[HEADER.TARGET_RUNTIME]
+            return self.runner.get_identity_by_decisive(runtime)
 
-    def _send_or_process_package(self, identity, package):
-        if self.runner.is_outgoing(identity):
-            return self._send_package(identity, package)
+    def _send_or_process_package(self, address, package):
+        if self.runner.is_outgoing(address):
+            return self._send_package(address, package)
         else:
             return self._process_package(package)
 
     @deferrable
-    def _send_package(self, identity, package):
+    def _send_package(self, address, package):
         message = self.package_encoder.encode(package)
-        self.runner.send_message(identity, message)
+        self.runner.send_message(address, message)
 
     @inline_callbacks
     def _process_package(self, package):
@@ -110,7 +146,7 @@ class BrokerFactory(object):
     :type package_decoder: L{pycloudia.packages.IPackageDecoder}
     :type package_wrapper_factory: C{Callable}
     :type request_id_factory: C{Callable}
-    :type responder: L{pycloudia.cloud.interfaces.IResponder}
+    :type responder: L{pycloudia.cluster.interfaces.IResponder}
     """
     logger = None
     package_factory = None

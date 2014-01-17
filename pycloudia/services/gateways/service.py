@@ -1,5 +1,5 @@
 from pycloudia.uitls.defer import inline_callbacks, deferrable
-from pycloudia.cloud.exceptions import RequestTimeoutError
+from pycloudia.cluster.exceptions import RequestTimeoutError
 from pycloudia.services.facades.exceptions import ClientNotFoundError
 from pycloudia.services.gateways.consts import HEADER
 from pycloudia.services.gateways.interfaces import IService
@@ -8,7 +8,7 @@ from pycloudia.services.gateways.runtime import Runtime
 
 class Service(IService, IActivityFactory):
     """
-    :type activities: L{pycloudia.cloud.interfaces.IActivityRegistry}
+    :type activities: L{pycloudia.cluster.interfaces.IActivityRegistry}
     :type facades: L{pycloudia.services.facades.interfaces.IService}
     :type gateway_factory: C{Callable}
     :type router: L{pycloudia.services.gateways.interfaces.IRouter}

@@ -20,3 +20,12 @@ class PackageError(RuntimeError):
 
 class PackageIgnoredWarning(PackageError):
     pass
+
+
+class InvalidActivityError(ValueError):
+    def __init__(self, activity, *args, **kwargs):
+        """
+        :type activity: L{pycloudia.cluster.interfaces.IActivity}
+        """
+        super(InvalidActivityError, self).__init__(*args, **kwargs)
+        self.activity = activity

@@ -1,7 +1,7 @@
 from collections import Counter
 from itertools import chain, repeat, izip
 
-from pycloudia.cloud.interfaces import ISequenceSpread
+from pycloudia.cluster.interfaces import ISequenceSpread
 
 
 class SequenceSpread(object, ISequenceSpread):

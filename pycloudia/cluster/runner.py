@@ -1,12 +1,12 @@
-from pycloudia.cloud.interfaces import IRunner
+from pycloudia.cluster.interfaces import IRunner
 
 
 class Runner(IRunner):
     """
     :type reactor: L{pycloudia.reactor.interfaces.IReactor}
     :type logger: L{logging.Logger}
-    :type mapper: L{pycloudia.cloud.interfaces.IMapper}
-    :type broker: L{pycloudia.cloud.interfaces.IReader}
+    :type mapper: L{pycloudia.cluster.interfaces.IMapper}
+    :type broker: L{pycloudia.cluster.interfaces.IReader}
     """
     reactor = None
     logger = None

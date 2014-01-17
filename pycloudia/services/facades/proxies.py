@@ -1,12 +1,12 @@
 from pycloudia.services.facades.interfaces import IService
 from pycloudia.services.facades.consts import SERVICE, HEADER
-from pycloudia.cloud.interfaces import IServiceInvoker
+from pycloudia.cluster.interfaces import IServiceInvoker
 
 
 class ClientProxy(IService):
     def __init__(self, sender):
         """
-        :type sender: L{pycloudia.cloud.interfaces.ISender}
+        :type sender: L{pycloudia.cluster.interfaces.ISender}
         """
         self.sender = sender
 

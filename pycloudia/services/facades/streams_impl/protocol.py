@@ -1,10 +1,6 @@
-from pycloudia.services.facades.interfaces import IProtocol, IProtocolFactory
+from pycloudia.services.facades.interfaces import IClient
 
 
-class Protocol(object, IProtocol):
+class Protocol(IClient):
     def __init__(self, server):
         pass
-
-
-class ProtocolFactory(object, IProtocolFactory):
-    pass

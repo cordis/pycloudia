@@ -1,6 +1,6 @@
 from bisect import bisect_left
 
-from pycloudia.cloud.interfaces import ISortedSet
+from pycloudia.cluster.interfaces import ISortedSet
 
 
 class SortedSet(object, ISortedSet):

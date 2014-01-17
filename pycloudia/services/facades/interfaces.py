@@ -36,12 +36,6 @@ class IListener(object):
 class IClient(object):
     __metaclass__ = ABCMeta
 
-    @abstractproperty
-    def client_id(self):
-        """
-        :rtype: C{str}
-        """
-
     @abstractmethod
     def send_message(self, message):
         """

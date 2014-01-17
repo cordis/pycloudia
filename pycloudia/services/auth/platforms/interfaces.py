@@ -34,6 +34,12 @@ class IProfile(object):
         :rtype: C{str}
         """
 
+    @abstractproperty
+    def language(self):
+        """
+        :rtype: C{str}
+        """
+
 
 class IAdapter(object):
     __metaclass__ = ABCMeta

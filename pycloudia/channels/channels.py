@@ -3,7 +3,7 @@ from collections import deque
 from pycloudia.consts import PACKAGE
 from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred
 from pycloudia.channels.messages import ChannelMessage
-from pycloudia.cloud.responder import ResponderNotFoundError
+from pycloudia.cluster.responder import ResponderNotFoundError
 
 
 class RouterPeers(object):

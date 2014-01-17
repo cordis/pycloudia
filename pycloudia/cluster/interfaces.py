@@ -29,19 +29,19 @@ class IActivity(object):
     __metaclass__ = ABCMeta
 
     @abstractproperty
-    def service_name(self):
+    def service(self):
         """
         :rtype: C{str}
         """
 
     @abstractproperty
-    def decisive(self):
+    def runtime(self):
         """
         :rtype: C{Hashable}
         """
 
     @abstractproperty
-    def identity(self):
+    def address(self):
         """
         :rtype: C{object}
         """
@@ -58,19 +58,19 @@ class ISender(object):
         """
 
     @abstractmethod
-    def send_request_package(self, source_activity, target_activity, package, timeout=0):
+    def send_request_package(self, source, target, package, timeout=0):
         """
-        :type source_activity: L{pycloudia.cloud.interfaces.IActivity}
-        :type target_activity: L{pycloudia.cloud.interfaces.IActivity}
-        :type package: L{pycloudia.cloud.interfaces.IRequestPackage}
+        :type source: L{pycloudia.cluster.interfaces.IActivity}
+        :type target: L{pycloudia.cluster.interfaces.IActivity}
+        :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
         :type timeout: C{int}
         """
 
     @abstractmethod
-    def send_package(self, target_activity, package):
+    def send_package(self, target, package):
         """
-        :type target_activity: L{pycloudia.cloud.interfaces.IActivity}
-        :type package: L{pycloudia.cloud.interfaces.IRequestPackage}
+        :type target: L{pycloudia.cluster.interfaces.IActivity}
+        :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
         """
 
 
@@ -112,7 +112,7 @@ class IRunner(object):
     def get_service_invoker_by_name(self, name):
         """
         :type name: C{str}
-        :rtype: L{pycloudia.cloud.interfaces.IServiceInvoker}
+        :rtype: L{pycloudia.cluster.interfaces.IServiceInvoker}
         """
 
 
@@ -165,8 +165,8 @@ class IServiceInvoker(object):
     @abstractmethod
     def process_package(self, package):
         """
-        :type package: L{pycloudia.cloud.interfaces.IRequestPackage}
-        :rtype: L{Deferred} of L{pycloudia.cloud.interfaces.IRequestPackage}
+        :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
+        :rtype: L{Deferred} of L{pycloudia.cluster.interfaces.IRequestPackage}
         """
 
 

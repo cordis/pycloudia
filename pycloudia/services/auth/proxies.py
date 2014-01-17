@@ -1,8 +1,8 @@
 from pycloudia.uitls.defer import inline_callbacks, return_value
 from pycloudia.uitls.beans import DataBean
-from pycloudia.cloud.interfaces import IServiceInvoker
-from pycloudia.cloud.exceptions import PackageIgnoredWarning
-from pycloudia.cloud.resolver import resolve_errors
+from pycloudia.cluster.interfaces import IServiceInvoker
+from pycloudia.cluster.exceptions import PackageIgnoredWarning
+from pycloudia.cluster.resolver import resolve_errors
 from pycloudia.services.auth.interfaces import IService
 from pycloudia.services.auth.consts import HEADER, COMMAND, SERVICE
 from pycloudia.services.auth.schemas import AuthenticateRequestSchema, AuthenticateResponseSchema
@@ -14,7 +14,7 @@ class ClientProxy(IService):
 
     def __init__(self, sender):
         """
-        :type sender: L{pycloudia.cloud.interfaces.ISender}
+        :type sender: L{pycloudia.cluster.interfaces.ISender}
         """
         self.sender = sender
 

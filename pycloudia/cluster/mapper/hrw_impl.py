@@ -1,6 +1,6 @@
 from copy import copy
 
-from pycloudia.cloud.interfaces import IMapper
+from pycloudia.cluster.interfaces import IMapper
 
 
 class WeightFunction(object):

@@ -2,7 +2,7 @@ from pyschema import Schema, Str
 
 from pycloudia.uitls.defer import inline_callbacks, return_value, deferrable
 from pycloudia.uitls.beans import DataBean
-from pycloudia.cloud.interfaces import IServiceInvoker, IServiceAdapter
+from pycloudia.cluster.interfaces import IServiceInvoker, IServiceAdapter
 from pycloudia.services.gateways.interfaces import IService
 from pycloudia.services.gateways.consts import HEADER, COMMAND, SERVICE, SOURCE
 
@@ -20,7 +20,7 @@ class RequestDeleteSchema(Schema):
 class ClientProxy(IService, IServiceAdapter):
     def __init__(self, sender):
         """
-        :type sender: L{pycloudia.cloud.interfaces.ISender}
+        :type sender: L{pycloudia.cluster.interfaces.ISender}
         """
         self.sender = sender
 

@@ -1,8 +1,8 @@
 from functools import wraps
 
 from pycloudia.uitls.defer import inline_callbacks, return_value, maybe_deferred
-from pycloudia.cloud.consts import HEADER, STATUS
-from pycloudia.cloud.interfaces import IRequestPackage
+from pycloudia.cluster.consts import HEADER, STATUS
+from pycloudia.cluster.interfaces import IRequestPackage
 
 
 __all__ = [

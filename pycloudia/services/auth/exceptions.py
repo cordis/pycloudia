@@ -1,4 +1,4 @@
-from pycloudia.cloud.resolver import ResolverMeta, resolve_method
+from pycloudia.cluster.resolver import ResolverMeta, resolve_method
 from pycloudia.services.auth.consts import VERBOSE
 
 

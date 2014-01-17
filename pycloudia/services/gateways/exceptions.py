@@ -1,4 +1,4 @@
-from pycloudia.cloud.exceptions import PackageError
+from pycloudia.cluster.exceptions import PackageError
 
 
 class ActivityNotFoundError(PackageError):

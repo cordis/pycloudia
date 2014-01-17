@@ -1,5 +1,5 @@
-from pycloudia.cloud.consts import HEADER
-from pycloudia.cloud.interfaces import IRequestPackage
+from pycloudia.cluster.consts import HEADER
+from pycloudia.cluster.interfaces import IRequestPackage
 
 
 class PackageContent(object):
@@ -71,11 +71,11 @@ class PackageWrapper(IRequestPackage):
             HEADER.TARGET_SERVICE: self.subject.headers[HEADER.SOURCE_SERVICE],
         })
         try:
-            response.headers[HEADER.TARGET_DECISIVE] = self.subject.headers[HEADER.SOURCE_DECISIVE]
+            response.headers[HEADER.TARGET_RUNTIME] = self.subject.headers[HEADER.SOURCE_RUNTIME]
         except KeyError:
             pass
         try:
-            response.headers[HEADER.TARGET_IDENTITY] = self.subject.headers[HEADER.SOURCE_IDENTITY]
+            response.headers[HEADER.TARGET_ADDRESS] = self.subject.headers[HEADER.SOURCE_ADDRESS]
         except KeyError:
             pass
         return response
