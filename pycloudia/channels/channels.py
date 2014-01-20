@@ -3,7 +3,7 @@ from collections import deque
 from pycloudia.consts import PACKAGE
 from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred
 from pycloudia.channels.messages import ChannelMessage
-from pycloudia.cluster.responder import ResponderNotFoundError
+from pycloudia.cluster.respondent import ResponderNotFoundError
 
 
 class RouterPeers(object):
@@ -51,10 +51,10 @@ class DealerPeers(object):
 class BiDirectionalChannel(object):
     package_decoder = None
     package_encoder = None
-    responder = None
+    respondent = None
 
     message_factory = ChannelMessage
-    responder_header_list = [
+    respondent_header_list = [
         PACKAGE.HEADER.PEER,
         PACKAGE.HEADER.HOPS,
         PACKAGE.HEADER.REQUEST_ID,
@@ -72,7 +72,7 @@ class BiDirectionalChannel(object):
 
     def _register_request(self, package):
         request_id = package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
-        return self.responder.listen(request_id, Deferred())
+        return self.respondent.listen(request_id, Deferred())
 
     def _on_message_received(self, message):
         incoming_package = self._decode_package(message)
@@ -89,7 +89,7 @@ class BiDirectionalChannel(object):
 
     def _process_response(self, incoming_package):
         request_id = incoming_package.get_headers()[PACKAGE.HEADER.REQUEST_ID]
-        self.responder.resolve(request_id, incoming_package)
+        self.respondent.resolve(request_id, incoming_package)
 
     @inline_callbacks
     def _process_request(self, incoming_package):
@@ -99,7 +99,7 @@ class BiDirectionalChannel(object):
             self.send_package(outgoing_package)
 
     def _copy_headers_from_request_to_response(self, incoming_package, outgoing_package):
-        for header_name in self.responder_header_list:
+        for header_name in self.respondent_header_list:
             outgoing_package.get_headers()[header_name] = incoming_package.get_headers()[header_name]
         return outgoing_package
 

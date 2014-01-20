@@ -1,3 +1,4 @@
+from pycloudia.respondent.runner import Runner
 from springpython.config import PythonConfig, Object
 from springpython.context import scope
 
@@ -5,7 +6,6 @@ from pycloudia.packages.decoder import Decoder
 from pycloudia.packages.encoder import Encoder
 from pycloudia.packages.factory import PackageFactory
 from pycloudia.channels.factory import ChannelFactory
-from pycloudia.cluster.responder import Responder
 
 
 class ChannelsModule(PythonConfig):
@@ -39,8 +39,8 @@ class ChannelsModule(PythonConfig):
         return PackageFactory()
 
     @Object(scope.SINGLETON)
-    def responder(self):
-        instance = Responder()
+    def respondent(self):
+        instance = Runner()
         instance.reactor = self.reactor()
         return instance
 

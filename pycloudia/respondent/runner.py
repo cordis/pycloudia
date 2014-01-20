@@ -1,12 +1,14 @@
-from pycloudia.cluster.exceptions import RequestTimeoutError, ResponderNotFoundError
-from pycloudia.cluster.interfaces import IResponder
+from pycloudia.respondent.exceptions import ResponseTimeoutError, ResponseNotHandledError
+from pycloudia.respondent.interfaces import IRunner
 
 
-class Responder(IResponder):
+class Runner(IRunner):
     """
     :type reactor: L{pycloudia.reactor.interfaces.IReactor}
+    :type dao: L{pycloudia.respondent.interfaces.IDao}
     """
     reactor = None
+    dao = None
 
     def __init__(self):
         self.registry = {}
@@ -18,7 +20,7 @@ class Responder(IResponder):
         return deferred
 
     def _set_timeout(self, request_id, timeout):
-        self.reactor.call_later(timeout, self.reject, request_id, RequestTimeoutError(request_id))
+        self.reactor.call_later(timeout, self.reject, request_id, ResponseTimeoutError(request_id))
 
     def reject(self, request_id, reason):
         try:
@@ -32,6 +34,6 @@ class Responder(IResponder):
         try:
             deferred = self.registry.pop(request_id)
         except KeyError:
-            raise ResponderNotFoundError(request_id)
+            raise ResponseNotHandledError(request_id)
         else:
             deferred.callback(*args, **kwargs)

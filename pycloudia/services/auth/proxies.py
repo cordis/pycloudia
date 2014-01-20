@@ -4,6 +4,7 @@ from pycloudia.cluster.interfaces import IServiceInvoker
 from pycloudia.cluster.exceptions import PackageIgnoredWarning
 from pycloudia.cluster.resolver import resolve_errors
 from pycloudia.cluster.beans import Activity
+from pycloudia.services.gateways.consts import HEADER as GATEWAY_HEADER
 from pycloudia.services.auth.interfaces import IService
 from pycloudia.services.auth.exceptions import Resolver
 from pycloudia.services.auth.consts import HEADER, COMMAND, SERVICE
@@ -66,8 +67,9 @@ class ServerProxy(IServiceInvoker):
     @resolve_errors(Resolver)
     @inline_callbacks
     def _process_authenticate_request_package(self, package):
+        client_id = package.headers[GATEWAY_HEADER.CLIENT_ID]
         request = AuthenticateRequestSchema().decode(package.content)
-        profile = yield self.service.authenticate(request.client_id, request.platform, request.access_token)
+        profile = yield self.service.authenticate(client_id, request.platform, request.access_token)
         response = self._create_authenticate_response_package(package, profile)
         return_value(response)
 

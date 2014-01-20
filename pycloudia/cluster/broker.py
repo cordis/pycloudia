@@ -1,5 +1,6 @@
+from pycloudia.respondent.exceptions import ResponseNotHandledError
 from pycloudia.uitls.defer import inline_callbacks, deferrable, Deferred
-from pycloudia.cluster.exceptions import ResponderNotFoundError, InvalidActivityError
+from pycloudia.cluster.exceptions import InvalidActivityError
 from pycloudia.cluster.interfaces import ISender, IReader
 from pycloudia.cluster.consts import HEADER, DEFAULT
 
@@ -12,7 +13,7 @@ class Broker(ISender, IReader):
     :type package_decoder: L{pycloudia.packages.IPackageDecoder}
     :type package_wrapper_factory: C{Callable}
     :type request_id_factory: C{Callable}
-    :type responder: L{pycloudia.cluster.interfaces.IResponder}
+    :type respondent: L{pycloudia.respondent.interfaces.IRunner}
     """
     logger = None
     package_factory = None
@@ -20,7 +21,7 @@ class Broker(ISender, IReader):
     package_decoder = None
     package_wrapper_factory = None
     request_id_factory = None
-    responder = None
+    respondent = None
 
     def __init__(self, runner):
         """
@@ -31,7 +32,7 @@ class Broker(ISender, IReader):
     def send_request_package(self, source, target, package, timeout=DEFAULT.REQUEST_TIMEOUT):
         package = self._set_source_headers(package, source)
         package.headers[HEADER.REQUEST_ID] = request_id = self.request_id_factory()
-        deferred = self.responder.listen(request_id, Deferred(), timeout)
+        deferred = self.respondent.listen(request_id, Deferred(), timeout)
         self.send_package(target, package)
         return deferred
 
@@ -133,8 +134,8 @@ class Broker(ISender, IReader):
 
     def _process_response_package(self, response_id, response_package):
         try:
-            self.responder.resolve(response_id, response_package)
-        except ResponderNotFoundError as e:
+            self.respondent.resolve(response_id, response_package)
+        except ResponseNotHandledError as e:
             self.logger.exception(e)
 
 
@@ -146,7 +147,7 @@ class BrokerFactory(object):
     :type package_decoder: L{pycloudia.packages.IPackageDecoder}
     :type package_wrapper_factory: C{Callable}
     :type request_id_factory: C{Callable}
-    :type responder: L{pycloudia.cluster.interfaces.IResponder}
+    :type respondent: L{pycloudia.respondent.interfaces.IRunner}
     """
     logger = None
     package_factory = None
@@ -154,7 +155,7 @@ class BrokerFactory(object):
     package_decoder = None
     package_wrapper_factory = None
     request_id_factory = None
-    responder = None
+    respondent = None
 
     def __call__(self, runner):
         instance = Broker(runner)
@@ -164,5 +165,5 @@ class BrokerFactory(object):
         instance.package_decoder = self.package_decoder
         instance.package_wrapper_factory = self.package_wrapper_factory
         instance.request_id_factory = self.request_id_factory
-        instance.responder = self.responder
+        instance.respondent = self.respondent
         return instance

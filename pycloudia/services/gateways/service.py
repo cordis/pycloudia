@@ -1,16 +1,16 @@
+from pycloudia.respondent.exceptions import ResponseTimeoutError
 from pycloudia.uitls.defer import inline_callbacks, deferrable
-from pycloudia.cluster.exceptions import RequestTimeoutError
 from pycloudia.services.facades.exceptions import ClientNotFoundError
 from pycloudia.services.gateways.consts import HEADER
 from pycloudia.services.gateways.interfaces import IService
-from pycloudia.services.gateways.runtime import Runtime
+from pycloudia.services.gateways.runner import Runner
 
 
-class Service(IService, IActivityFactory):
+class Service(IService):
     """
     :type activities: L{pycloudia.cluster.beans.ActivityRegistry}
     :type facades: L{pycloudia.services.facades.interfaces.IService}
-    :type gateway_factory: C{Callable}
+    :type runtime_factory: C{Callable}
     :type router: L{pycloudia.services.gateways.interfaces.IRouter}
     :type dao: L{pycloudia.services.gateways.interfaces.IDao}
     """
@@ -18,7 +18,7 @@ class Service(IService, IActivityFactory):
 
     facades = None
 
-    gateway_factory = Runtime
+    runtime_factory = Runner
     router = None
     dao = None
 
@@ -31,18 +31,18 @@ class Service(IService, IActivityFactory):
 
     @deferrable
     def create_gateway(self, client_id, facade_id):
-        gateway = self.gateway_factory(client_id, facade_id)
-        self.activities.contain(self, gateway)
-        self.runtime_map[client_id] = gateway
+        runtime = self.runtime_factory(client_id, facade_id)
+        self.activities.contain(self, runtime)
+        self.runtime_map[client_id] = runtime
 
     @inline_callbacks
-    def suspend_activity(self, client_id, facade_id):
-        del self.runtime_map[client_id]
+    def suspend_activity(self, activity):
+        del self.runtime_map[activity.runtime]
 
     @inline_callbacks
     def recover_activity(self, client_id, facade_id):
         user_id = yield self.dao.find_user_id_or_none(client_id)
-        gateway = self.gateway_factory(client_id, facade_id, user_id)
+        gateway = self.runtime_factory(client_id, facade_id, user_id)
         self.activities.contain(self, gateway)
         self.runtime_map[client_id] = gateway
         yield self._delete_gateway_if_required(facade_id, client_id)
@@ -51,7 +51,7 @@ class Service(IService, IActivityFactory):
     def _delete_gateway_if_required(self, facade_id, client_id):
         try:
             yield self.facades.validate(facade_id, client_id)
-        except (RequestTimeoutError, ClientNotFoundError) as e:
+        except (ResponseTimeoutError, ClientNotFoundError) as e:
             yield self.delete_gateway(client_id, e)
 
     @deferrable
@@ -64,12 +64,12 @@ class Service(IService, IActivityFactory):
         runtime = self.runtime_map[client_id]
         runtime.user_id = yield self.dao.store_user_id(client_id, user_id)
 
-    @deferrable
+    @inline_callbacks
     def process_incoming_package(self, client_id, package):
         runtime = self.runtime_map[client_id]
         package.headers[HEADER.USER_ID] = runtime.user_id
         package.headers[HEADER.CLIENT_ID] = runtime.client_id
-        self.router.route_package(package)
+        yield self.router.route_package(runtime, package)
 
     @deferrable
     def process_outgoing_package(self, client_id, package):

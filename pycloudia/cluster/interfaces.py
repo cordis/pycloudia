@@ -43,13 +43,14 @@ class ISender(object):
         :type target: L{pycloudia.cluster.beans.Activity}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         :type timeout: C{int}
+        :rtype: L{Deferred}
         """
 
     @abstractmethod
     def send_package(self, target, package):
         """
         :type target: L{pycloudia.cluster.beans.Activity}
-        :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
+        :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
 
@@ -146,29 +147,4 @@ class IServiceInvoker(object):
         """
         :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
         :rtype: L{Deferred} of L{pycloudia.cluster.interfaces.IRequestPackage}
-        """
-
-
-class IResponder(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def listen(self, request_id, deferred, timeout):
-        """
-        :type request_id: C{str}
-        :type deferred: L{Deferred}
-        :type timeout: C{int}
-        """
-
-    @abstractmethod
-    def resolve(self, request_id, *args, **kwargs):
-        """
-        :type request_id: C{str}
-        """
-
-    @abstractmethod
-    def reject(self, request_id, reason):
-        """
-        :type request_id: C{str}
-        :type reason: C{Exception}
         """

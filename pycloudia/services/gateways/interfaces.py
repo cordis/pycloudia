@@ -45,6 +45,10 @@ class IService(object):
         """
 
 
+class IRunner(object):
+    __metaclass__ = ABCMeta
+
+
 class IRouter(object):
     __metaclass__ = ABCMeta
 

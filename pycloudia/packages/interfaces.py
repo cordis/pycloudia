@@ -1,7 +1,8 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
+from collections import Hashable
 
 
-class IPackage(object):
+class IPackage(Hashable):
     __metaclass__ = ABCMeta
 
     @abstractproperty
