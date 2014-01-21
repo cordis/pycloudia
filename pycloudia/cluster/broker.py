@@ -1,5 +1,5 @@
-from pycloudia.respondent.exceptions import ResponseNotHandledError
 from pycloudia.uitls.defer import inline_callbacks, deferrable, Deferred
+from pycloudia.respondent.exceptions import ResponseNotHandledError
 from pycloudia.cluster.exceptions import InvalidActivityError
 from pycloudia.cluster.interfaces import ISender, IReader
 from pycloudia.cluster.consts import HEADER, DEFAULT
@@ -135,8 +135,8 @@ class Broker(ISender, IReader):
     def _process_response_package(self, response_id, response_package):
         try:
             self.respondent.resolve(response_id, response_package)
-        except ResponseNotHandledError as e:
-            self.logger.exception(e)
+        except ResponseNotHandledError:
+            self._process_request_package(response_package)
 
 
 class BrokerFactory(object):

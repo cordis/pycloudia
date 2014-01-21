@@ -131,11 +131,11 @@ class IServiceAdapter(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def suspend_activity(self, *args):
+    def suspend_activity(self, activity):
         pass
 
     @abstractmethod
-    def recover_activity(self, *args):
+    def recover_activity(self, activity):
         pass
 
 
