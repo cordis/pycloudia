@@ -5,7 +5,7 @@ class IDevice(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def initialize(self):
+    def start(self):
         pass
 
 

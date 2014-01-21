@@ -23,7 +23,7 @@ class Config(PythonConfig):
     def starter(self):
         from pycloudia.bootstrap.starter import Starter
         instance = Starter()
-        instance.logger = logging.getLogger('starter')
+        instance.logger = logging.getLogger('pycloudia.bootstrap.starter')
         instance.io_loop = self.io_loop()
         instance.reactor = self.reactor()
         return instance
@@ -32,7 +32,7 @@ class Config(PythonConfig):
     def device(self):
         from pycloudia.bootstrap.device import Device
         instance = Device()
-        instance.logger = logging.getLogger('device')
+        instance.logger = logging.getLogger('pycloudia.bootstrap.device')
         instance.reactor = self.reactor()
         instance.explorer = self.explorer()
         return instance
@@ -47,21 +47,22 @@ class Config(PythonConfig):
     def explorer_config(self):
         from pycloudia.explorer import ExplorerConfig
         return ExplorerConfig(
-            host=self._get_host_from_options(),
+            host=self.localhost(),
             min_port=self.options.min_port,
             max_port=self.options.max_port,
-            identity=self.identity_factory()(),
+            identity=self.identity(),
         )
 
     @Object(scope.SINGLETON)
-    def identity_factory(self):
+    def identity(self):
         from uuid import uuid4
-        return lambda: str(uuid4())
+        return str(uuid4())
 
-    def _get_host_from_options(self):
+    @Object(scope.SINGLETON)
+    def localhost(self):
         from pycloudia.uitls.net import get_ip_address
-        if self.options.host is not None:
-            return self.options.host
+        if self.options.localhost is not None:
+            return self.options.localhost
         return get_ip_address(self.options.interface)
 
     @Object(scope.SINGLETON)
@@ -81,6 +82,11 @@ class Config(PythonConfig):
         from pycloudia.streams.zmq_impl.factory import StreamFactory
         return StreamFactory.create_instance(self.io_loop())
 
+    @Object(scope.PROTOTYPE)
+    def isolated_reactor(self):
+        from pycloudia.reactor.isolated import IsolatedReactor
+        return IsolatedReactor(self.reactor())
+
     @Object(scope.SINGLETON)
     def reactor(self):
         from tornado.platform.twisted import TornadoReactor
@@ -91,3 +97,45 @@ class Config(PythonConfig):
     def io_loop(self):
         from zmq.eventloop.ioloop import IOLoop
         return IOLoop.instance()
+
+    @Object(scope.SINGLETON)
+    def package_factory(self):
+        from pycloudia.packages.package import PackageFactory
+        return PackageFactory()
+
+    @Object(scope.SINGLETON)
+    def cluster_runner_factory(self):
+        from pycloudia.cluster.runner import RunnerFactory
+        instance = RunnerFactory()
+        instance.logger = logging.getLogger('pycloudia.cluster.runner')
+        instance.reactor = self.reactor()
+        instance.mapper_factory = self.cluster_mapper_factory()
+        instance.broker_factory = self.cluster_broker_factory()
+        return instance
+
+    @Object(scope.SINGLETON)
+    def cluster_mapper_factory(self):
+        from pycloudia.cluster.mapper.hrw_impl import Mapper
+        return Mapper
+
+    @Object(scope.SINGLETON)
+    def cluster_broker_factory(self):
+        from pycloudia.cluster.broker import BrokerFactory
+        instance = BrokerFactory()
+        instance.logger = logging.getLogger('pycloudia.cluster.broker')
+        instance.package_factory = self.package_factory()
+        instance.package_encoder = self.package_factory().create_encoder()
+        instance.package_decoder = self.package_factory().create_decoder()
+        instance.request_id_factory = self.uuid4_factory()
+        instance.respondent = self.respondent()
+        return instance
+
+    @Object(scope.SINGLETON)
+    def uuid4_factory(self):
+        from uuid import uuid4
+        return lambda: str(uuid4())
+
+    @Object(scope.PROTOTYPE)
+    def respondent(self):
+        from pycloudia.respondent.runner import Runner
+        return Runner()

@@ -100,7 +100,7 @@ class Runtime(object):
 
     def _get_or_create_channel(self, channel_declaration, address):
         socket_factory = self._get_socket_factory(channel_declaration)
-        socket = socket_factory(channel_declaration.name, channel_declaration.method, address.host, address.port)
+        socket = socket_factory(channel_declaration.name, channel_declaration.method, address.localhost, address.port)
         return self.channel_factory(socket), True
 
     def _get_socket_factory(self, channel_declaration):
@@ -110,7 +110,7 @@ class Runtime(object):
     def run_service(self, service):
         start = time()
         try:
-            yield maybe_deferred(service.initialize)
+            yield maybe_deferred(service.start)
             yield maybe_deferred(service.run)
         except RuntimeError as e:
             self._log_service_failure(service, e)
@@ -121,7 +121,7 @@ class Runtime(object):
         self.logger.error(
             'Channel %s has not been started on %s:%s: %s',
             service.name,
-            service.host,
+            service.localhost,
             service.port,
             exception
         )
@@ -130,7 +130,7 @@ class Runtime(object):
         self.logger.info(
             'Channel %s started on %s:%s in %.3f seconds',
             service.name,
-            service.host,
+            service.localhost,
             service.port,
             start_duration
         )
@@ -145,7 +145,7 @@ class ConfigAddressList(object):
 
     def get_local(self):
         for address in self.get_all():
-            if address.host in (self.options.internal_host, self.options.external_host):
+            if address.localhost in (self.options.internal_host, self.options.external_host):
                 return address
         else:
             raise KeyError('No one of config addresses matches localhost')

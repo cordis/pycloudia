@@ -26,10 +26,10 @@ class UdpMulticast(object):
                 return instance
 
             def startProtocol(self):
-                self.transport.joinGroup(self.multicast.host)
+                self.transport.joinGroup(self.multicast.localhost)
 
             def send(self, message):
-                self.transport.write(message, (self.multicast.host, self.multicast.port))
+                self.transport.write(message, (self.multicast.localhost, self.multicast.port))
 
             def datagramReceived(self, data, address_tuple):
                 self.multicast.message_received.emit(data, address_tuple[0])

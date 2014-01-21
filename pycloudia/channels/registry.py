@@ -43,7 +43,7 @@ class ChannelsRegistry(object):
         self.logger.error(
             'Channel %s has not been started on %s:%s: %s',
             channel.name,
-            channel.host,
+            channel.localhost,
             channel.port,
             exception
         )
@@ -52,7 +52,7 @@ class ChannelsRegistry(object):
         self.logger.info(
             'Channel %s started on %s:%s in %.3f seconds',
             channel.name,
-            channel.host,
+            channel.localhost,
             channel.port,
             start_duration
         )

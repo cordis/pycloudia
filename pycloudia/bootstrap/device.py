@@ -10,11 +10,13 @@ class Device(IDevice):
     logger = None
     reactor = None
     explorer = None
+    services = None
 
-    def initialize(self):
+    def start(self):
         #self.explorer.incoming_stream_created.connect()
         self.reactor.call_when_running(self.explorer.start)
-        self.reactor.call_later(15, self._initialize_activities)
+        self.reactor.call_later(15, self._start_services)
 
-    def _initialize_activities(self):
-        pass
+    def _start_services(self):
+        for service in self.services:
+            service.start()
