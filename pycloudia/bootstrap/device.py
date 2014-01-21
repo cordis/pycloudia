@@ -1,9 +1,14 @@
-from pycloudia.reactor.interfaces import IReactor
+from pycloudia.bootstrap.interfaces import IDevice
 
 
-class Device(object):
+class Device(IDevice):
+    """
+    :type logger: L{logging.Logger}
+    :type reactor: L{pycloudia.reactor.interfaces.IReactor}
+    :type explorer: L{pycloudia.explorer.interfaces.IRunner}
+    """
     logger = None
-    reactor = IReactor
+    reactor = None
     explorer = None
 
     def initialize(self):

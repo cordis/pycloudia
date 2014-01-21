@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractproperty, abstractmethod
 
 
 class IAgentConfig(object):
@@ -27,3 +27,11 @@ class IAgentConfig(object):
         """
         :rtype: C{str}
         """
+
+
+class IRunner(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def start(self):
+        pass

@@ -1,12 +1,19 @@
 from pysigslot import Signal
 
-from pycloudia.reactor.interfaces import IReactor
+from pycloudia.explorer.interfaces import IRunner
 from pycloudia.explorer.beans import Peer
 
 
-class Runner(object):
-    reactor = IReactor
+class Runner(IRunner):
+    """
+    :type logger: L{logging.Logger}
+    :type reactor: L{pycloudia.reactor.interfaces.IReactor}
+    :type protocol: L{pycloudia.explorer.protocol.Protocol}
+    :type broadcast: L{pycloudia.broadcast.udp.UdpMulticast}
+    :type stream_factory: L{pycloudia.streams.zmq_impl.factory.StreamFactory}
+    """
     logger = None
+    reactor = None
     protocol = None
     broadcast = None
     stream_factory = None
@@ -101,8 +108,15 @@ class Runner(object):
 
 
 class RunnerFactory(object):
+    """
+    :type logger: L{logging.Logger}
+    :type reactor: L{pycloudia.reactor.interfaces.IReactor}
+    :type protocol: L{pycloudia.explorer.protocol.Protocol}
+    :type stream_factory: L{pycloudia.streams.zmq_impl.factory.StreamFactory}
+    :type broadcast_factory: C{Callable}
+    """
     logger = None
-    reactor = IReactor
+    reactor = None
     protocol = None
     stream_factory = None
     broadcast_factory = None
