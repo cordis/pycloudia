@@ -10,7 +10,7 @@ class StreamFactory(object):
     @classmethod
     def create_instance(cls, zmq_io_loop, io_threads=1):
         instance = cls()
-        instance.zmq_context = ZmqContext(io_threads)
+        instance.zmq_context = ZmqContext.instance(io_threads)
         instance.zmq_io_loop = zmq_io_loop
         return instance
 
