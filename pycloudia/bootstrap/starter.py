@@ -1,4 +1,7 @@
-class Starter(object):
+from pycloudia.bootstrap.interfaces import IStarter
+
+
+class Starter(IStarter):
     """
     :type logger: L{logging.Logger}
     :type reactor: L{pycloudia.reactor.interfaces.IReactor}

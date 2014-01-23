@@ -39,8 +39,8 @@ class ISender(object):
     @abstractmethod
     def send_request_package(self, source, target, package, timeout=0):
         """
-        :type source: L{pycloudia.cluster.beans.Activity}
-        :type target: L{pycloudia.cluster.beans.Activity}
+        :type source: L{pycloudia.services.beans.Channel}
+        :type target: L{pycloudia.services.beans.Channel}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         :type timeout: C{int}
         :rtype: L{Deferred}
@@ -49,7 +49,7 @@ class ISender(object):
     @abstractmethod
     def send_package(self, target, package):
         """
-        :type target: L{pycloudia.cluster.beans.Activity}
+        :type target: L{pycloudia.services.beans.Channel}
         :type package: L{pycloudia.packages.interfaces.IPackage}
         """
 
@@ -92,7 +92,7 @@ class IRunner(object):
     def get_service_invoker_by_name(self, name):
         """
         :type name: C{str}
-        :rtype: L{pycloudia.cluster.interfaces.IServiceInvoker}
+        :rtype: L{pycloudia.services.interfaces.IInvoker}
         """
 
 
@@ -139,12 +139,3 @@ class IServiceAdapter(object):
         pass
 
 
-class IServiceInvoker(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def process_package(self, package):
-        """
-        :type package: L{pycloudia.cluster.interfaces.IRequestPackage}
-        :rtype: L{Deferred} of L{pycloudia.cluster.interfaces.IRequestPackage}
-        """

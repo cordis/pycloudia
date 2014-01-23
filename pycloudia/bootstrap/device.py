@@ -6,6 +6,7 @@ class Device(IDevice):
     :type logger: L{logging.Logger}
     :type reactor: L{pycloudia.reactor.interfaces.IReactor}
     :type explorer: L{pycloudia.explorer.interfaces.IRunner}
+    :type services: L{pycloudia.services.interfaces.IRegistry}
     """
     logger = None
     reactor = None

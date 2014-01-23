@@ -108,7 +108,7 @@ class Broker(ISender, IReader):
             return self._process_package(package)
 
     @deferrable
-    def _send_package(self, address, package):
+    def _send_package(self, address, package, importance=None):
         message = self.package_encoder.encode(package)
         self.runner.send_message(address, message)
 

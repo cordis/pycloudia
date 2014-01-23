@@ -35,6 +35,7 @@ class Config(PythonConfig):
         instance.logger = logging.getLogger('pycloudia.bootstrap.device')
         instance.reactor = self.reactor()
         instance.explorer = self.explorer()
+        instance.services = self.services()
         return instance
 
     @Object(scope.PROTOTYPE)
@@ -139,3 +140,7 @@ class Config(PythonConfig):
     def respondent(self):
         from pycloudia.respondent.runner import Runner
         return Runner()
+
+    @Object(scope.PROTOTYPE)
+    def services(self):
+        raise NotImplementedError()
