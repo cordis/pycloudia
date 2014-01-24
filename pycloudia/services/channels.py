@@ -1,5 +1,5 @@
 from pycloudia.services.beans import Channel
-from pycloudia.services.interfaces import IServiceChannelsFactory, IChannelsFactory
+from pycloudia.services.interfaces import IServiceChannelFactory, IChannelsFactory
 
 
 class ChannelsFactory(IChannelsFactory):
@@ -12,7 +12,7 @@ class ChannelsFactory(IChannelsFactory):
         return self.channel_cls(service=service, runtime=runtime)
 
 
-class ServiceChannelsFactory(IServiceChannelsFactory):
+class ServiceChannelFactory(IServiceChannelFactory):
     channels_factory = ChannelsFactory()
 
     def __init__(self, service):

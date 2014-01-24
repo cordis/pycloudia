@@ -34,7 +34,7 @@ class IInvoker(object):
         """
 
 
-class IServiceChannelsFactory(object):
+class IServiceChannelFactory(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod

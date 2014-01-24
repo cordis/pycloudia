@@ -1,6 +1,6 @@
 from pycloudia.uitls.defer import inline_callbacks, deferrable, Deferred
 from pycloudia.respondent.exceptions import ResponseNotHandledError
-from pycloudia.cluster.exceptions import InvalidActivityError
+from pycloudia.cluster.exceptions import InvalidChannelError
 from pycloudia.cluster.interfaces import ISender, IReader
 from pycloudia.cluster.consts import HEADER, DEFAULT
 
@@ -40,8 +40,9 @@ class Broker(ISender, IReader):
     def _set_source_headers(package, source):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
-        :type source: L{pycloudia.cluster.beans.Activity}
+        :type source: L{pycloudia.services.beans.Channel}
         :rtype: L{pycloudia.packages.interfaces.IPackage}
+        :raise: L{pycloudia.cluster.exceptions.InvalidChannelError}
         """
         package.headers[HEADER.SOURCE_SERVICE] = source.service
         if source.address is not None:
@@ -49,19 +50,19 @@ class Broker(ISender, IReader):
         elif source.runtime:
             package.headers[HEADER.SOURCE_RUNTIME] = source.runtime
         else:
-            raise InvalidActivityError(source)
+            raise InvalidChannelError(source)
         return package
 
     def send_package(self, target, package):
         package = self._set_target_headers(package, target)
-        address = self._get_activity_address(target)
+        address = self._get_channel_address(target)
         self._send_or_process_package(address, package)
 
     @staticmethod
     def _set_target_headers(package, target):
         """
         :type package: L{pycloudia.packages.interfaces.IPackage}
-        :type target: L{pycloudia.cluster.beans.Activity}
+        :type target: L{pycloudia.services.beans.Channel}
         :rtype: L{pycloudia.packages.interfaces.IPackage}
         """
         package.headers[HEADER.TARGET_SERVICE] = target.service
@@ -70,12 +71,12 @@ class Broker(ISender, IReader):
         elif target.runtime:
             package.headers[HEADER.TARGET_RUNTIME] = target.runtime
         else:
-            raise InvalidActivityError(target)
+            raise InvalidChannelError(target)
         return package
 
-    def _get_activity_address(self, activity):
+    def _get_channel_address(self, activity):
         """
-        :type activity: L{pycloudia.cluster.beans.Activity}
+        :type activity: L{pycloudia.services.beans.Channel}
         :rtype: C{object}
         """
         if activity.address is not None:
@@ -83,7 +84,7 @@ class Broker(ISender, IReader):
         elif activity.runtime is not None:
             return self.runner.get_identity_by_decisive(activity.runtime)
         else:
-            raise InvalidActivityError(activity)
+            raise InvalidChannelError(activity)
 
     def read_message(self, message):
         try:

@@ -8,10 +8,10 @@ class PackageIgnoredWarning(PackageError):
     pass
 
 
-class InvalidActivityError(ValueError):
-    def __init__(self, activity, *args, **kwargs):
+class InvalidChannelError(ValueError):
+    def __init__(self, channel, *args, **kwargs):
         """
-        :type activity: L{pycloudia.cluster.beans.Activity}
+        :type channel: L{pycloudia.services.beans.Channel}
         """
-        super(InvalidActivityError, self).__init__(*args, **kwargs)
-        self.activity = activity
+        super(InvalidChannelError, self).__init__(*args, **kwargs)
+        self.channel = channel
