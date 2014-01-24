@@ -1,9 +1,19 @@
 from pycloudia.services.beans import Channel
-from pycloudia.services.interfaces import IChannelsFactory
+from pycloudia.services.interfaces import IServiceChannelsFactory, IChannelsFactory
 
 
 class ChannelsFactory(IChannelsFactory):
     channel_cls = Channel
+
+    def create_by_address(self, service, address):
+        return self.channel_cls(service=service, address=address)
+
+    def create_by_runtime(self, service, runtime):
+        return self.channel_cls(service=service, runtime=runtime)
+
+
+class ServiceChannelsFactory(IServiceChannelsFactory):
+    channels_factory = ChannelsFactory()
 
     def __init__(self, service):
         """
@@ -12,7 +22,7 @@ class ChannelsFactory(IChannelsFactory):
         self.service = service
 
     def create_by_address(self, address):
-        return self.channel_cls(service=self.service, address=address)
+        return self.channels_factory.create_by_address(self.service, address)
 
     def create_by_runtime(self, runtime):
-        return self.channel_cls(service=self.service, runtime=runtime)
+        return self.channels_factory.create_by_runtime(self.service, runtime)

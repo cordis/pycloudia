@@ -34,7 +34,7 @@ class IInvoker(object):
         """
 
 
-class IChannelsFactory(object):
+class IServiceChannelsFactory(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -47,6 +47,26 @@ class IChannelsFactory(object):
     @abstractmethod
     def create_by_runtime(self, runtime):
         """
+        :type runtime: C{str}
+        :rtype: L{pycloudia.services.beans.Channel}
+        """
+
+
+class IChannelsFactory(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def create_by_address(self, service, address):
+        """
+        :type service: C{str}
+        :type address: C{str}
+        :rtype: L{pycloudia.services.beans.Channel}
+        """
+
+    @abstractmethod
+    def create_by_runtime(self, service, runtime):
+        """
+        :type service: C{str}
         :type runtime: C{str}
         :rtype: L{pycloudia.services.beans.Channel}
         """

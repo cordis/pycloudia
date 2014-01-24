@@ -125,17 +125,3 @@ class IMapper(object):
         :type hashable: C{Hashable}
         :rtype: C{object}
         """
-
-
-class IServiceAdapter(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def suspend_activity(self, activity):
-        pass
-
-    @abstractmethod
-    def recover_activity(self, activity):
-        pass
-
-
