@@ -1,0 +1,3 @@
+class BaseRegistry(object):
+    pass
+

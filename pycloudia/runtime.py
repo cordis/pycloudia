@@ -9,7 +9,7 @@ from pycloudia.channels.address import Address
 from pycloudia.uitls.decorators import generate_list
 from pycloudia.uitls.defer import inline_callbacks, maybe_deferred
 from pycloudia.channels.declarative import ChannelDeclaration
-from im.services.config import CHANNEL
+from pyligaforex.services.config import CHANNEL
 
 
 ServiceIdentity = namedtuple('BaseServiceIdentity', 'cls identity')
