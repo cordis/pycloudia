@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class IRequest(object):
@@ -22,4 +22,11 @@ class IRequest(object):
         :type default: C{list}
         :rtype: C{list} of C{str}
         :raise: L{pycloudia.rest.exceptions.MissingArgumentError}
+        """
+
+
+    @abstractproperty
+    def path(self):
+        """
+        :rtype: C{object}
         """
