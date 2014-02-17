@@ -1,6 +1,6 @@
 from collections import deque
 
-from pycloudia.uitls.defer import inline_callbacks
+from pycloudia.utils.defer import inline_callbacks
 
 
 class ReactiveQueueTask(object):

@@ -1,8 +1,8 @@
 from time import time
 from logging import getLogger
 
-from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, DeferredListFactory
-from pycloudia.uitls.decorators import generate_dict
+from pycloudia.utils.defer import inline_callbacks, maybe_deferred, DeferredListFactory
+from pycloudia.utils.decorators import generate_dict
 
 
 class ChannelsRegistry(object):

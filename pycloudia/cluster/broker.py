@@ -1,4 +1,4 @@
-from pycloudia.uitls.defer import inline_callbacks, deferrable, Deferred
+from pycloudia.utils.defer import inline_callbacks, deferrable, Deferred
 from pycloudia.respondent.exceptions import ResponseNotHandledError
 from pycloudia.cluster.exceptions import InvalidChannelError
 from pycloudia.cluster.interfaces import ISender, IReader

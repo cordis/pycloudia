@@ -1,7 +1,7 @@
 from collections import deque
 
 from pycloudia.consts import PACKAGE
-from pycloudia.uitls.defer import inline_callbacks, maybe_deferred, Deferred
+from pycloudia.utils.defer import inline_callbacks, maybe_deferred, Deferred
 from pycloudia.channels.messages import ChannelMessage
 from pycloudia.cluster.respondent import ResponderNotFoundError
 

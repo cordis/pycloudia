@@ -1,4 +1,4 @@
-from pycloudia.uitls.defer import Deferred
+from pycloudia.utils.defer import Deferred
 from pycloudia.reactor.interfaces import IReactor, ILoopingCall
 from pycloudia.reactor.isolated import IsolatedReactor
 

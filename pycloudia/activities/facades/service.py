@@ -1,5 +1,5 @@
-from pycloudia.uitls.structs import BiDirectedDict
-from pycloudia.uitls.defer import deferrable, inline_callbacks
+from pycloudia.utils.structs import BiDirectedDict
+from pycloudia.utils.defer import deferrable, inline_callbacks
 
 from pycloudia.activities.facades.exceptions import ClientNotFoundError
 from pycloudia.activities.facades.interfaces import IService, IDirector

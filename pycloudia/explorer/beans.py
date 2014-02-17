@@ -1,5 +1,5 @@
 from pycloudia.explorer.interfaces import IAgentConfig
-from pycloudia.uitls.structs import DataBean
+from pycloudia.utils.structs import DataBean
 
 
 class Peer(DataBean):

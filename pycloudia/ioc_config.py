@@ -61,7 +61,7 @@ class Config(PythonConfig):
 
     @Object(scope.SINGLETON)
     def localhost(self):
-        from pycloudia.uitls.net import get_ip_address
+        from pycloudia.utils.net import get_ip_address
         if self.options.localhost is not None:
             return self.options.localhost
         return get_ip_address(self.options.interface)

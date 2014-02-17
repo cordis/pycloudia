@@ -1,4 +1,4 @@
-from pycloudia.uitls.structs import DataBean
+from pycloudia.utils.structs import DataBean
 
 
 class Channel(DataBean):

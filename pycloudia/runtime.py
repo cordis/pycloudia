@@ -6,8 +6,8 @@ from operator import itemgetter
 from time import time
 
 from pycloudia.channels.address import Address
-from pycloudia.uitls.decorators import generate_list
-from pycloudia.uitls.defer import inline_callbacks, maybe_deferred
+from pycloudia.utils.decorators import generate_list
+from pycloudia.utils.defer import inline_callbacks, maybe_deferred
 from pycloudia.channels.declarative import ChannelDeclaration
 from pyligaforex.services.config import CHANNEL
 

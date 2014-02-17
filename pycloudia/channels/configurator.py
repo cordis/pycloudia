@@ -1,4 +1,4 @@
-from pycloudia.uitls.code import instantiate_by_config
+from pycloudia.utils.code import instantiate_by_config
 
 
 class ChannelConfigurator(object):

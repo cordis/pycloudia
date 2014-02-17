@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import deque
 
-from pycloudia.uitls.defer import Deferred
+from pycloudia.utils.defer import Deferred
 from pycloudia.reactor.interfaces import IReactor, IIsolatedReactor
 from pycloudia.reactor.reactive_queue import ReactiveQueueFactory
 

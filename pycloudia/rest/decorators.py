@@ -8,7 +8,7 @@ except ImportError:
 
 from tornado.web import HTTPError, RequestHandler
 
-from pycloudia.uitls.decorators import generate_list, generate_dict
+from pycloudia.utils.decorators import generate_list, generate_dict
 
 __all__ = ['rest', 'jsonify']
 

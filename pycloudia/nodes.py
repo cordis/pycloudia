@@ -1,4 +1,4 @@
-from pycloudia.uitls.defer import inline_callbacks
+from pycloudia.utils.defer import inline_callbacks
 
 
 class WorkerNode(object):
