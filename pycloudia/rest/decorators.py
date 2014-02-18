@@ -66,7 +66,7 @@ class Rest(object):
         return RequestHandlerDecorator
 
     @staticmethod
-    def error(exception_cls, code):
+    def error(exception_cls, code, reason=None):
         """
         :type exception_cls: C{type}
         :type code: C{int}
@@ -77,7 +77,7 @@ class Rest(object):
                 try:
                     return func(*args, **kwargs)
                 except exception_cls as e:
-                    raise HTTPError(code, e)
+                    raise HTTPError(code, e, reason=reason)
             return http_error_decorator
         return http_error_call
 
