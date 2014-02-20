@@ -36,7 +36,28 @@ def _send_failure(self, exception):
     }))
 
 
+def get_or_create_spec(func):
+    """
+    :rtype: L{pycloudia.rest.spec.Spec}
+    """
+    if not hasattr(func, SPEC_ATTRIBUTE_NAME):
+        setattr(func, SPEC_ATTRIBUTE_NAME, Spec())
+    return getattr(func, SPEC_ATTRIBUTE_NAME)
+
+
 class Rest(object):
+    @staticmethod
+    def error(exception_cls, code, reason=None):
+        """
+        :type exception_cls: C{type}
+        :type code: C{int}
+        :rtype: C{Callable}
+        """
+        def decorator(func):
+            spec = get_or_create_spec(func)
+            spec.error_map[exception_cls] = (code, reason)
+        return decorator
+
     class Handler(object):
         def get(self, resource):
             """
@@ -52,38 +73,19 @@ class Rest(object):
             """
             return self._create_http_method_decorator(METHOD.POST, resource)
 
-        def _create_http_method_decorator(self, http_method, resource):
+        @staticmethod
+        def _create_http_method_decorator(http_method, resource):
             """
             :type http_method: C{str}
             :type resource: C{str}
             :rtype: C{Callable}
             """
             def decorator(func):
-                spec = self._get_or_create_spec(func)
+                spec = get_or_create_spec(func)
                 spec.http_method = http_method
                 spec.resource = resource
                 return func
             return decorator
-
-        def error(self, exception_cls, code, reason=None):
-            """
-            :type exception_cls: C{type}
-            :type code: C{int}
-            :rtype: C{Callable}
-            """
-            def decorator(func):
-                spec = self._get_or_create_spec(func)
-                spec.error_map[exception_cls] = (code, reason)
-            return decorator
-
-        @staticmethod
-        def _get_or_create_spec(func):
-            """
-            :rtype: L{pycloudia.rest.spec.Spec}
-            """
-            if not hasattr(func, SPEC_ATTRIBUTE_NAME):
-                setattr(func, SPEC_ATTRIBUTE_NAME, Spec())
-            return getattr(func, SPEC_ATTRIBUTE_NAME)
 
     handler = Handler()
 
