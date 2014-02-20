@@ -1,85 +1,91 @@
 from functools import wraps
+
 from defer import inline_callbacks, defer, return_value
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
-from tornado.web import HTTPError, RequestHandler
-
+from pycloudia.rest.consts import SPEC_ATTRIBUTE_NAME, METHOD
+from pycloudia.rest.spec import Spec
 from pycloudia.utils.decorators import generate_list, generate_dict
 
 __all__ = ['rest', 'jsonify']
 
-http_method_list = ['head', 'get', 'post', 'delete', 'patch', 'put', 'options']
+
+#@TODO: remove it from here
+def _send_success(self, response):
+    try:
+        import simplejson as json
+    except ImportError:
+        import json
+
+    self.finish(json.dumps({
+        'data': response,
+        'code': 0,
+        'message': None,
+    }))
+
+
+#@TODO: remove it from here
+def _send_failure(self, exception):
+    try:
+        import simplejson as json
+    except ImportError:
+        import json
+    self.finish(json.dumps({
+        'data': None,
+        'code': self._get_failure_code(exception),
+        'message': str(exception),
+    }))
 
 
 class Rest(object):
-    @staticmethod
-    def handler(cls):
-        """
-        :type cls: C{type}
-        :rtype: C{RequestHandlerDecorator}
-        """
-        @wraps(cls)
-        class RequestHandlerDecorator(RequestHandler):
-            subject = None
+    class Handler(object):
+        def get(self, resource):
+            """
+            :type resource: C{str}
+            :rtype: C{Callable}
+            """
+            return self._create_http_method_decorator(METHOD.GET, resource)
 
-            def prepare(self):
-                self.subject = cls()
-                self.subject.request = self
+        def post(self, resource):
+            """
+            :type resource: C{str}
+            :rtype: C{Callable}
+            """
+            return self._create_http_method_decorator(METHOD.POST, resource)
 
-            def __getattr__(self, method):
-                if not hasattr(self.subject, method):
-                    return getattr(super(RequestHandlerDecorator, self), method)
+        def _create_http_method_decorator(self, http_method, resource):
+            """
+            :type http_method: C{str}
+            :type resource: C{str}
+            :rtype: C{Callable}
+            """
+            def decorator(func):
+                spec = self._get_or_create_spec(func)
+                spec.http_method = http_method
+                spec.resource = resource
+                return func
+            return decorator
 
-                if method not in http_method_list:
-                    return getattr(self.subject, method)
+        def error(self, exception_cls, code, reason=None):
+            """
+            :type exception_cls: C{type}
+            :type code: C{int}
+            :rtype: C{Callable}
+            """
+            def decorator(func):
+                spec = self._get_or_create_spec(func)
+                spec.error_map[exception_cls] = (code, reason)
+            return decorator
 
-                def method_decorator(*args, **kwargs):
-                    deferred = defer(getattr(self.subject, method), *args, **kwargs)
-                    deferred.add_callbacks(self._send_success, self._send_failure)
+        @staticmethod
+        def _get_or_create_spec(func):
+            """
+            :rtype: L{pycloudia.rest.spec.Spec}
+            """
+            if not hasattr(func, SPEC_ATTRIBUTE_NAME):
+                setattr(func, SPEC_ATTRIBUTE_NAME, Spec())
+            return getattr(func, SPEC_ATTRIBUTE_NAME)
 
-                return method_decorator
-
-            def _send_success(self, response):
-                self.finish(json.dumps({
-                    'data': response,
-                    'code': 0,
-                    'message': None,
-                }))
-
-            def _send_failure(self, exception):
-                self.finish(json.dumps({
-                    'data': None,
-                    'code': self._get_failure_code(exception),
-                    'message': str(exception),
-                }))
-
-            @staticmethod
-            def _get_failure_code(exception):
-                if isinstance(exception, HTTPError):
-                    return exception.status_code
-                return getattr(exception, 'code', 500)
-
-        return RequestHandlerDecorator
-
-    @staticmethod
-    def error(exception_cls, code, reason=None):
-        """
-        :type exception_cls: C{type}
-        :type code: C{int}
-        """
-        def http_error_call(func):
-            @wraps(func)
-            def http_error_decorator(*args, **kwargs):
-                try:
-                    return func(*args, **kwargs)
-                except exception_cls as e:
-                    raise HTTPError(code, e, reason=reason)
-            return http_error_decorator
-        return http_error_call
+    handler = Handler()
 
 
 class Jsonifier(object):
