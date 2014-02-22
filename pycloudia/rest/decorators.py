@@ -2,7 +2,7 @@ from functools import wraps
 
 from defer import inline_callbacks, defer, return_value
 
-from pycloudia.rest.consts import SPEC_ATTRIBUTE_NAME, METHOD
+from pycloudia.rest.consts import SPEC_ATTRIBUTE_NAME, METHOD, RENDERER
 from pycloudia.rest.spec import Spec
 from pycloudia.utils.decorators import generate_list, generate_dict
 
@@ -30,7 +30,7 @@ class Rest(object):
             """
             def decorator(func):
                 spec = get_or_create_spec(func)
-                spec.exception_map[exception_cls] = (status_code, message)
+                spec.exception_list.append((exception_cls, status_code, message))
                 return func
             return decorator
 
@@ -43,7 +43,7 @@ class Rest(object):
             """
             def decorator(func):
                 spec = get_or_create_spec(func)
-                spec.exception_map[exception_cls] = resolve_func
+                spec.exception_list.append((exception_cls, resolve_func))
                 return func
             return decorator
 
@@ -76,8 +76,29 @@ class Rest(object):
                 return func
             return decorator
 
+    class Renderer(object):
+        @staticmethod
+        def jsonp(argument='jsoncallback'):
+            """
+            :type argument: C{str}
+            """
+            def decorator(func):
+                spec = get_or_create_spec(func)
+                spec.renderer = (RENDERER.JSONP, argument)
+                return func
+            return decorator
+
+        @staticmethod
+        def json():
+            def decorator(func):
+                spec = get_or_create_spec(func)
+                spec.renderer = (RENDERER.JSON, )
+                return func
+            return decorator
+
     handler = Handler()
     error = Error()
+    renderer = Renderer()
 
 
 class Jsonifier(object):

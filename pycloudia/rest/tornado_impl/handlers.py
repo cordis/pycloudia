@@ -57,7 +57,7 @@ class BaseRequestHandler(RequestHandler):
         """
         request = self._create_request(*args, **kwargs)
         try:
-            ret = yield maybe_deferred(self.func, request)
+            response = yield maybe_deferred(self.func, request)
         except Exception as e:
             exc_info = sys.exc_info()
             try:
@@ -68,8 +68,9 @@ class BaseRequestHandler(RequestHandler):
                 if not isinstance(resolver, callable):
                     status_code, message = resolver
                     raise HTTPError(status_code, e, reason=message)
-                ret = resolver(e, exc_info)
-        return_value(ret)
+                response = resolver(e, exc_info)
+        response = yield maybe_deferred(self.spec.render, request, response)
+        return_value(response)
 
     def _create_request(self, *args, **kwargs):
         return HttpRequest(self, *args, **kwargs)
