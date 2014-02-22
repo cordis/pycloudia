@@ -1,3 +1,5 @@
+import sys
+
 from defer import inline_callbacks, return_value, defer as maybe_deferred
 
 from tornado.web import RequestHandler, HTTPError, MissingArgumentError as TornadoMissingArgumentError
@@ -57,12 +59,16 @@ class BaseRequestHandler(RequestHandler):
         try:
             ret = yield maybe_deferred(self.func, request)
         except Exception as e:
+            exc_info = sys.exc_info()
             try:
-                code, message = self.spec.get_error(e)
+                resolver = self.spec.resolve_exception(e)
             except LookupError:
                 raise e
             else:
-                raise HTTPError(code, e, reason=message)
+                if not isinstance(resolver, callable):
+                    status_code, message = resolver
+                    raise HTTPError(status_code, e, reason=message)
+                ret = resolver(e, exc_info)
         return_value(ret)
 
     def _create_request(self, *args, **kwargs):

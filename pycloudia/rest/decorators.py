@@ -9,33 +9,6 @@ from pycloudia.utils.decorators import generate_list, generate_dict
 __all__ = ['rest', 'jsonify']
 
 
-#@TODO: remove it from here
-def _send_success(self, response):
-    try:
-        import simplejson as json
-    except ImportError:
-        import json
-
-    self.finish(json.dumps({
-        'data': response,
-        'code': 0,
-        'message': None,
-    }))
-
-
-#@TODO: remove it from here
-def _send_failure(self, exception):
-    try:
-        import simplejson as json
-    except ImportError:
-        import json
-    self.finish(json.dumps({
-        'data': None,
-        'code': self._get_failure_code(exception),
-        'message': str(exception),
-    }))
-
-
 def get_or_create_spec(func):
     """
     :rtype: L{pycloudia.rest.spec.Spec}
@@ -46,17 +19,33 @@ def get_or_create_spec(func):
 
 
 class Rest(object):
-    @staticmethod
-    def error(exception_cls, code, reason=None):
-        """
-        :type exception_cls: C{type}
-        :type code: C{int}
-        :rtype: C{Callable}
-        """
-        def decorator(func):
-            spec = get_or_create_spec(func)
-            spec.error_map[exception_cls] = (code, reason)
-        return decorator
+    class Error(object):
+        @staticmethod
+        def http(exception_cls, status_code, message=None):
+            """
+            :type exception_cls: C{type}
+            :type status_code: C{int}
+            :type message: C{basestring}
+            :rtype: C{Callable}
+            """
+            def decorator(func):
+                spec = get_or_create_spec(func)
+                spec.exception_map[exception_cls] = (status_code, message)
+                return func
+            return decorator
+
+        @staticmethod
+        def resolve(exception_cls, resolve_func):
+            """
+            :type exception_cls: C{type}
+            :type resolve_func: C{Callable}
+            :rtype: C{Callable}
+            """
+            def decorator(func):
+                spec = get_or_create_spec(func)
+                spec.exception_map[exception_cls] = resolve_func
+                return func
+            return decorator
 
     class Handler(object):
         def get(self, resource):
@@ -88,6 +77,7 @@ class Rest(object):
             return decorator
 
     handler = Handler()
+    error = Error()
 
 
 class Jsonifier(object):

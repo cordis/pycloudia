@@ -1,7 +1,7 @@
 class Spec(object):
     http_method = None
     resource = None
-    error_map = {}
+    exception_map = {}
 
-    def get_error(self, e):
+    def resolve_exception(self, e):
         pass
