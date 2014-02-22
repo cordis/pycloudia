@@ -30,4 +30,5 @@ class HttpListener(IListener):
                 self.logger.info('Listening failed on %s:%s -- %s', self.host, port, e)
             else:
                 self.port = port
+                return
         raise ListenFailedError(self.host, (self.max_port, self.max_port))

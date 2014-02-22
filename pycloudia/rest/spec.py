@@ -52,3 +52,6 @@ class Spec(object):
         return response, {
             HEADER.CONTENT_TYPE: CONTENT_TYPE.JSON,
         }
+
+    def __repr__(self):
+        return '{0}: {1}'.format(type(self), self.__dict__)

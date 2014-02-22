@@ -6,6 +6,8 @@ class IRequest(object):
 
     MISSED = object()
 
+    path = NotImplemented
+
     @abstractmethod
     def get_argument(self, type_func, name, default=MISSED):
         """
@@ -14,10 +16,4 @@ class IRequest(object):
         :type default: C{object} or C{None}
         :rtype: C{type_func}
         :raise: L{pycloudia.rest.exceptions.MissingArgumentError}
-        """
-
-    @abstractproperty
-    def path(self):
-        """
-        :rtype: C{object}
         """

@@ -14,6 +14,11 @@ class Protocol(object):
 
 
 class ProtocolFactory(object):
+    """
+    :type logger: L{logging.Logger}
+    """
+    logger = None
+
     request_handler_map = {
         METHOD.GET: GetRequestHandler,
         METHOD.POST: PostRequestHandler,
@@ -46,6 +51,7 @@ class ProtocolFactory(object):
 
     def _create_tornado_url_spec(self, func):
         rest_spec = self._get_spec(func)
+        self.logger.debug('Creates tornado URLSpec from %r', rest_spec)
         request_handler = self.request_handler_map[rest_spec.http_method]
         return URLSpec(rest_spec.resource, request_handler, dict(func=func, spec=rest_spec))
 

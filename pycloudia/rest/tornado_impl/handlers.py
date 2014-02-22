@@ -57,30 +57,40 @@ class BaseRequestHandler(RequestHandler):
         """
         request = self._create_request(*args, **kwargs)
         try:
-            response = yield maybe_deferred(self.func, request)
+            content = yield maybe_deferred(self.func, request)
         except Exception as e:
-            exc_info = sys.exc_info()
+            exception_cls, exception, traceback = sys.exc_info()
             try:
                 resolver = self.spec.resolve_exception(e)
             except LookupError:
-                raise e
+                raise exception_cls, exception, traceback
             else:
                 if not isinstance(resolver, callable):
                     status_code, message = resolver
                     raise HTTPError(status_code, e, reason=message)
-                response = resolver(e, exc_info)
-        response = yield maybe_deferred(self.spec.render, request, response)
-        return_value(response)
+                content = resolver(e, exception_cls, exception, traceback)
+        content, headers = yield maybe_deferred(self.spec.render, request, content)
+        return_value((content, headers))
 
     def _create_request(self, *args, **kwargs):
         return HttpRequest(self, *args, **kwargs)
 
+    def _finish(self, args):
+        """
+        :type args: C{tuple} of (C{basestring}, C{dict})
+        """
+        content, headers = args
+        self.write(content)
+        for name, value in headers.iteritems():
+            self.set_header(name, value)
+        self.finish()
+
 
 class GetRequestHandler(BaseRequestHandler):
     def get(self, *args, **kwargs):
-        self._invoke(*args, **kwargs).add_callback(self.finish)
+        self._invoke(*args, **kwargs).add_callback(self._finish)
 
 
 class PostRequestHandler(BaseRequestHandler):
     def post(self, *args, **kwargs):
-        self._invoke(*args, **kwargs).add_callback(self.finish)
+        self._invoke(*args, **kwargs).add_callback(self._finish)
