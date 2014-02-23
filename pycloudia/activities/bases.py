@@ -1,15 +1,18 @@
 class Activity(object):
-    def __init__(self, factory):
-        self.factory = factory
+    pass
 
 
 class Service(Activity):
+    def __init__(self, factory):
+        self.instance = factory()
+
     def get_any(self):
-        raise NotImplementedError()
+        return self.instance
 
 
 class Runtime(Activity):
-    pass
+    def __init__(self, factory):
+        self.factory = factory
 
 
 class BaseRegistry(object):

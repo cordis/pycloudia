@@ -33,7 +33,7 @@ class ProtocolFactory(object):
         :rtype: L{pycloudia.activities.facades.tornado_impl.protocol.Protocol}
         """
         handler_list = self._create_handler_list()
-        application = Application(handler_list)
+        application = Application(handler_list, debug=True)
         return Protocol(application)
 
     @generate_list
