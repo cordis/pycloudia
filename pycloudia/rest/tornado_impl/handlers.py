@@ -4,7 +4,6 @@ from defer import inline_callbacks, return_value, defer as maybe_deferred
 
 from tornado.web import RequestHandler, HTTPError, MissingArgumentError as TornadoMissingArgumentError
 
-from pycloudia.utils.structs import DataBean
 from pycloudia.rest.interfaces import IRequest
 from pycloudia.rest.exceptions import MissingArgumentError
 
@@ -18,12 +17,20 @@ class HttpRequest(IRequest):
         :type handler: L{pycloudia.rest.tornado_impl.handlers.BaseRequestHandler}
         """
         self.handler = handler
-        if args:
-            self.path = args
-        else:
-            self.path = DataBean(**kwargs)
+        self.path_args = args
+        self.path_kwargs = kwargs
 
     def get_argument(self, type_func, name, default=IRequest.MISSED):
+        try:
+            return type_func(self.path_args[int(name)])
+        except (ValueError, IndexError):
+            pass
+
+        try:
+            return type_func(self.path_kwargs[name])
+        except KeyError:
+            pass
+
         if issubclass(type_func, (tuple, list)):
             method = self.handler.get_arguments
         else:
@@ -35,6 +42,7 @@ class HttpRequest(IRequest):
                 raise MissingArgumentError(name)
         else:
             value = method(name, default)
+
         return type_func(value)
 
 

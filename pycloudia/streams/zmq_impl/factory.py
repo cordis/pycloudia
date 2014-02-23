@@ -27,7 +27,7 @@ class StreamFactory(object):
 
     def remove_stream(self, stream):
         self.streams.discard(stream)
-        stream.clost()
+        stream.close()
 
     def create_router_stream(self):
         return RouterStream.create_instance(self.zmq_context, self.zmq_io_loop)

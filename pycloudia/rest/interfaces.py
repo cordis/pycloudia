@@ -6,8 +6,6 @@ class IRequest(object):
 
     MISSED = object()
 
-    path = NotImplemented
-
     @abstractmethod
     def get_argument(self, type_func, name, default=MISSED):
         """
