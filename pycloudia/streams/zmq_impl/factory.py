@@ -29,6 +29,12 @@ class StreamFactory(object):
         self.streams.discard(stream)
         stream.close()
 
+    def create_request_stream(self, identity):
+        raise NotImplementedError()
+
+    def create_response_stream(self):
+        raise NotImplementedError()
+
     def create_router_stream(self):
         return RouterStream.create_instance(self.zmq_context, self.zmq_io_loop)
 

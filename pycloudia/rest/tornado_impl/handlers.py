@@ -1,6 +1,7 @@
 import sys
 
 from defer import inline_callbacks, return_value, defer as maybe_deferred
+from tornado.ioloop import IOLoop
 
 from tornado.web import RequestHandler, HTTPError, MissingArgumentError as TornadoMissingArgumentError
 
@@ -64,6 +65,7 @@ class BaseRequestHandler(RequestHandler):
         :rtype: L{defer.Deferred} of C{unicode}
         """
         request = self._create_request(*args, **kwargs)
+        self._auto_finish = False
         try:
             content = yield maybe_deferred(self.func, request)
         except Exception as e:
@@ -71,10 +73,12 @@ class BaseRequestHandler(RequestHandler):
             try:
                 resolver = self.spec.resolve_exception(e)
             except LookupError:
+                IOLoop.instance().add_callback(self.send_error, 500)
                 raise exception_cls, exception, traceback
             else:
                 if not isinstance(resolver, callable):
                     status_code, message = resolver
+                    IOLoop.instance().add_callback(self.finish)
                     raise HTTPError(status_code, e, reason=message)
                 content = resolver(e, exception_cls, exception, traceback)
         content, headers = yield maybe_deferred(self.spec.render, request, content)
