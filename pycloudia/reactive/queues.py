@@ -11,6 +11,12 @@ class ReactiveQueue(object):
         self.task_list = deque()
         self._is_busy = False
 
+    def is_empty(self):
+        return not self.is_busy() and not bool(self.task_list)
+
+    def is_busy(self):
+        return self._is_busy
+
     def call(self, task):
         self.task_list.append(task)
         self.tick()
@@ -55,6 +61,12 @@ class ReactiveQueueScope(object):
     def __init__(self, io_loop):
         self.io_loop = io_loop
         self.queue_map = {}
+
+    def is_empty(self, key):
+        try:
+            return self.queue_map[key].is_empty()
+        except KeyError:
+            return True
 
     def is_busy(self, key):
         try:

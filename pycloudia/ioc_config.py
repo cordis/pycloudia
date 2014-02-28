@@ -91,7 +91,7 @@ class Config(PythonConfig):
     @Object(scope.SINGLETON)
     def reactor(self):
         from tornado.platform.twisted import TornadoReactor
-        from pycloudia.reactor.twisted_impl import ReactorAdapter
+        from pycloudia.reactive.twisted_impl.reactor import ReactorAdapter
         return ReactorAdapter(TornadoReactor(self.io_loop()))
 
     @Object(scope.SINGLETON)
