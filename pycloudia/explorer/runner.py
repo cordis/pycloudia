@@ -40,7 +40,7 @@ class Runner(IRunner):
 
     def _start_sink(self):
         self.sink = self.stream_factory.create_sink_stream()
-        self.sink.message_received.connect(self._process_sink_message)
+        self.sink.on_read.connect(self._process_sink_message)
         return self.sink.start_on_random_port(self.config.localhost, self.config.min_port, self.config.max_port)
 
     def _create_beacons(self, port):
@@ -54,7 +54,7 @@ class Runner(IRunner):
         return self.protocol.create_immediate_beacon_message(self.config.localhost, port, self.config.identity)
 
     def _start_broadcast(self):
-        self.broadcast.message_received.connect(self._process_broadcast_message)
+        self.broadcast.on_read.connect(self._process_broadcast_message)
         self.broadcast.start()
 
     def _start_heartbeat(self):

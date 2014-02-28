@@ -21,7 +21,7 @@ class Runner(IRunner):
         if self.incoming_stream is not None:
             raise KeyError('Incoming stream {0} already attached'.format(self.incoming_stream.identity))
         self.incoming_stream = stream
-        self.incoming_stream.message_received.connect(self.broker.read_message)
+        self.incoming_stream.on_read.connect(self.broker.read_message)
 
     def attach_outgoing_stream(self, stream):
         self.outgoing_stream_map[stream.identity] = stream

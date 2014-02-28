@@ -55,21 +55,21 @@ class SimpleReadMessageStrategy(IReadStreamMessageStrategy):
     def read_message(self, stream, message_list):
         assert len(message_list) == 1
         message = stream.zmq_message_factory(message_list[0])
-        stream.message_received.emit(message)
+        stream.on_read.emit(message)
 
 
 class SignedReadMessageStrategy(IReadStreamMessageStrategy):
     def read_message(self, stream, message_list):
         assert len(message_list) > 1
         message = stream.zmq_message_factory(message_list[-1], peer=message_list[0], hops=message_list[1:-1])
-        stream.message_received.emit(message)
+        stream.on_read.emit(message)
 
 
 class DealerReadMessageStrategy(IReadStreamMessageStrategy):
     def read_message(self, stream, message_list):
         assert len(message_list) > 0
         message = stream.zmq_message_factory(message_list[-1], peer=stream.identity, hops=message_list[:-1])
-        stream.message_received.emit(message)
+        stream.on_read.emit(message)
 
 
 class RejectSendMessageStrategy(ISendStreamMessageStrategy):

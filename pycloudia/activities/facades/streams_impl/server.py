@@ -11,7 +11,7 @@ class Server(object):
 
     def start(self):
         router = self.stream_factory.create_router_stream()
-        router.message_received.connect(self._read_message)
+        router.on_read.connect(self._read_message)
         if self.port is None:
             self.port = router.start_on_random_port(self.host)
         elif isinstance(self.port, (tuple, list)):

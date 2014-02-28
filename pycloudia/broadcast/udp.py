@@ -11,7 +11,7 @@ class UdpMulticast(object):
         self.host = host
         self.port = port
         self.adapter = self._create_protocol_adapter()
-        self.message_received = Signal()
+        self.on_read = Signal()
 
     def _create_protocol_adapter(self):
         from twisted.internet.protocol import DatagramProtocol
@@ -32,7 +32,7 @@ class UdpMulticast(object):
                 self.transport.write(message, (self.multicast.localhost, self.multicast.port))
 
             def datagramReceived(self, data, address_tuple):
-                self.multicast.message_received.emit(data, address_tuple[0])
+                self.multicast.on_read.emit(data, address_tuple[0])
 
         return ProtocolAdapter.create_instance(self)
 

@@ -22,9 +22,9 @@ __all__ = [
 
 class BaseStream(object):
     """
-    :type zmq_message_factory: L{Callable}
-    :type zmq_socket_factory: L{Callable}
-    :type zmq_stream_factory: L{Callable}
+    :type zmq_message_factory: C{Callable}
+    :type zmq_socket_factory: C{Callable}
+    :type zmq_stream_factory: C{Callable}
     :type zmq_socket_type: C{int}
     :type zmq_stream_start_strategy: L{pycloudia.streams.zmq_impl.interfaces.IStartStreamStrategy}
     :type zmq_stream_read_strategy: L{pycloudia.streams.zmq_impl.interfaces.IReadStreamMessageStrategy}
@@ -43,8 +43,8 @@ class BaseStream(object):
         return cls(zmq_context, zmq_io_loop, *args, **kwargs)
 
     def __init__(self, zmq_context, zmq_io_loop):
-        self.__dict__['zmq_stream'] = self._create_zmq_stream(zmq_context, zmq_io_loop)
-        self.__dict__['message_received'] = Signal()
+        self.zmq_stream = self._create_zmq_stream(zmq_context, zmq_io_loop)
+        self.on_read = Signal()
 
     def _create_zmq_stream(self, zmq_context, zmq_io_loop):
         zmq_socket = self.zmq_socket_factory(zmq_context, self.zmq_socket_type)
@@ -58,11 +58,7 @@ class BaseStream(object):
     def start_on_random_port(self, host, min_port=49152, max_port=65536, max_tries=100):
         self.zmq_stream.on_recv(self._read_message)
         return self.zmq_stream_start_strategy.start_tcp_on_random_port(
-            self.zmq_stream,
-            host,
-            min_port,
-            max_port,
-            max_tries
+            self.zmq_stream, host, min_port, max_port, max_tries
         )
 
     def _read_message(self, message_list):
@@ -77,17 +73,29 @@ class BaseStream(object):
     def close(self):
         self.zmq_stream.close()
         self.zmq_stream = None
-        self.message_received.disconnect_all()
+        self.on_read.disconnect_all()
 
-    def __getattr__(self, item):
-        if not hasattr(self.zmq_stream.socket, item):
-            raise AttributeError('"{0}" object has no attribute "{1}"'.format(type(self), item))
-        return getattr(self.zmq_stream.socket, item)
+    def call_feature(self, name, *args, **kwargs):
+        method = self.get_feature(name)
+        return method(*args, **kwargs)
 
-    def __setattr__(self, key, value):
-        if not hasattr(self.zmq_stream.socket, key):
-            raise AttributeError('"{0}" object has no attribute "{1}"'.format(type(self), key))
-        return setattr(self.zmq_stream.socket, key, value)
+    def get_feature(self, name):
+        name = self._ensure_has_feature(name)
+        return getattr(self.zmq_stream.socket, name)
+
+    def set_feature(self, name, value):
+        name = self._ensure_has_feature(name)
+        return setattr(self.zmq_stream.socket, name, value)
+
+    def _ensure_has_feature(self, name):
+        """
+        :type name: C{str}
+        :rtype: C{str}
+        :raise: C{AttributeError}
+        """
+        if not hasattr(self.zmq_stream.socket, name):
+            raise AttributeError('"{0}" object has no attribute "{1}"'.format(type(self), name))
+        return name
 
 
 class RouterStream(BaseStream):

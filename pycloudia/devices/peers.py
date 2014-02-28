@@ -6,7 +6,7 @@ class BasePeer(object):
         self.host = host
         self.port = port
         self.identity = identity
-        self.message_received = Signal()
+        self.on_read = Signal()
 
     def start(self):
         pass
@@ -20,7 +20,7 @@ class BasePeer(object):
 
 class LocalPeer(BasePeer):
     def send(self, message):
-        self.message_received.emit(message)
+        self.on_read.emit(message)
 
 
 class RemotePeer(BasePeer):
@@ -28,7 +28,7 @@ class RemotePeer(BasePeer):
     heartbeat = None
 
     def start(self):
-        self.dealer.message_received.connect(self._process_dealer_message)
+        self.dealer.on_read.connect(self._process_dealer_message)
 
     def _process_dealer_message(self, message):
         pass
